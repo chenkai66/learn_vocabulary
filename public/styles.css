@@ -146,6 +146,74 @@ h2 {
     box-shadow: 0 6px 12px rgba(155, 89, 182, 0.4);
 }
 
+/* Theme Recommendation Section */
+#theme-recommendation-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#recommended-themes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#recommended-themes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.recommended-theme {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recommended-theme:hover {
+    background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.refresh-btn {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(243, 156, 18, 0.3);
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    align-self: flex-start;
+}
+
+.refresh-btn:hover {
+    background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(243, 156, 18, 0.4);
+}
+
 /* Theme suggestions */
 #theme-suggestions {
     display: flex;
