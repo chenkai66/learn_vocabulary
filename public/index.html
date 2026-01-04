@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary Learning App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Advanced Vocabulary Learning</h1>
+            <div id="user-info">
+                <span id="welcome-message">Welcome, </span>
+                <span id="username-display">User</span>
+            </div>
+        </header>
+
+        <main>
+            <div class="content-wrapper">
+                <div class="left-column">
+                    <section id="generation-section">
+                        <h2>Generate New Vocabulary</h2>
+                        <input type="text" id="theme-input" placeholder="Enter keywords for theme (e.g., 'biology: genetics', 'computer science: AI') or leave empty for random">
+                        <div id="theme-suggestions">
+                            <span class="theme-suggestion" data-theme="Computer Science: AI and Machine Learning">AI & ML</span>
+                            <span class="theme-suggestion" data-theme="Biological Sciences: Genetics">Genetics</span>
+                            <span class="theme-suggestion" data-theme="Environmental Sciences: Climate Change">Climate Change</span>
+                            <span class="theme-suggestion" data-theme="Psychology: Cognitive Science">Cognitive Science</span>
+                            <span class="theme-suggestion" data-theme="Medicine: Neuroscience">Neuroscience</span>
+                            <span class="theme-suggestion" data-theme="Business: Economics">Economics</span>
+                        </div>
+                        <button id="generate-btn">Learn Some Words</button>
+                        <input type="text" id="word-input" placeholder="Enter a specific word to learn...">
+                        <button id="lookup-btn">Lookup Word</button>
+                    </section>
+
+                    <section id="vocabulary-display">
+                        <h2>Your Vocabulary Sets</h2>
+                        <div id="vocabulary-container"></div>
+                    </section>
+                </div>
+
+                <div class="right-column">
+                    <section id="review-section">
+                        <h2>Review Vocabulary</h2>
+                        <div id="review-options">
+                            <button id="start-full-review-btn" class="review-option-btn">Full Review</button>
+                            <button id="start-single-review-btn" class="review-option-btn">Single Theme Review</button>
+                        </div>
+                        <div id="review-container" style="display: none;"></div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
