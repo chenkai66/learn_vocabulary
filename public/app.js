@@ -382,19 +382,24 @@ class VocabularyApp {
             return;
         }
 
-        // Get all words from all vocabulary sets
-        const allWords = [];
+        // Get all unique words from all vocabulary sets
+        const allWordsMap = new Map();
         this.vocabularySets
             .filter(set => set.type === 'vocabulary_set' && set.words && set.words.length > 0)
             .forEach(set => {
                 set.words.forEach(word => {
-                    // Add the theme information to each word for reference
-                    allWords.push({
-                        ...word,
-                        theme: set.theme
-                    });
+                    // Use word as key to ensure uniqueness
+                    if (!allWordsMap.has(word.word)) {
+                        // Add the theme information to each word for reference
+                        allWordsMap.set(word.word, {
+                            ...word,
+                            theme: set.theme
+                        });
+                    }
                 });
             });
+
+        const allWords = Array.from(allWordsMap.values());
 
         if (allWords.length < 5) {
             alert('Not enough words available for review. Generate more vocabulary sets.');
@@ -419,12 +424,18 @@ class VocabularyApp {
             return;
         }
 
-        // Get all vocabulary sets that have words
+        // Get all vocabulary sets that have at least 5 unique words
         const vocabularySets = this.vocabularySets
-            .filter(set => set.type === 'vocabulary_set' && set.words && set.words.length >= 5);
+            .filter(set => {
+                if (set.type !== 'vocabulary_set' || !set.words) return false;
+
+                // Create a set of unique words to check if there are at least 5
+                const uniqueWords = new Set(set.words.map(word => word.word));
+                return uniqueWords.size >= 5;
+            });
 
         if (vocabularySets.length === 0) {
-            alert('No vocabulary sets with words found for review.');
+            alert('No vocabulary sets with at least 5 unique words found for review.');
             return;
         }
 
@@ -436,27 +447,36 @@ class VocabularyApp {
     }
     
     prepareReviewExercise() {
-        // Get 5 random words from the vocabulary set
-        const words = [...this.currentReviewSet.words]
-            .sort(() => 0.5 - Math.random())
-            .slice(0, 5);
+        // Get unique words from the vocabulary set
+        const uniqueWords = [...this.currentReviewSet.words];
 
-        // Get 5 random definitions from the same set (including the selected words' definitions)
-        const allDefinitions = this.currentReviewSet.words.map(w => {
+        // Shuffle and select 5 unique words (or all available if less than 5)
+        const words = [...uniqueWords]
+            .sort(() => 0.5 - Math.random())
+            .slice(0, Math.min(5, uniqueWords.length));
+
+        // Get unique definitions from the vocabulary set
+        const allUniqueDefinitions = [...new Set(this.currentReviewSet.words.map(w => {
             // Ensure the chineseDefinition field exists and has a value
             return w.chineseDefinition || 'Definition not available';
-        });
+        }))];
 
-        const selectedDefinitions = [...words.map(w => {
+        // Get the definitions for the selected words
+        const selectedDefinitions = [...new Set(words.map(w => {
             // Ensure the chineseDefinition field exists and has a value
             return w.chineseDefinition || 'Definition not available';
-        })];
+        }))];
 
-        // Add more definitions to make 5 total if needed
-        const otherDefinitions = allDefinitions
-            .filter(def => !selectedDefinitions.includes(def))
-            .sort(() => 0.5 - Math.random())
-            .slice(0, 5 - selectedDefinitions.length);
+        // Add more unique definitions to make up 5 total if needed
+        let otherDefinitions = [];
+        const remainingDefinitions = allUniqueDefinitions
+            .filter(def => !selectedDefinitions.includes(def));
+
+        if (remainingDefinitions.length > 0) {
+            otherDefinitions = [...remainingDefinitions]
+                .sort(() => 0.5 - Math.random())
+                .slice(0, Math.min(5 - selectedDefinitions.length, remainingDefinitions.length));
+        }
 
         const definitions = [...selectedDefinitions, ...otherDefinitions]
             .sort(() => 0.5 - Math.random()); // Shuffle definitions
