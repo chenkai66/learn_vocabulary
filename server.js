@@ -5,6 +5,7 @@ const fs = require('fs');
 const fsPromises = require('fs').promises;
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const XLSX = require('xlsx');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -249,6 +250,28 @@ app.post('/api/generate', async (req, res) => {
   } catch (error) {
     console.error('Error generating vocabulary:', error);
     res.status(500).json({ error: 'Failed to generate vocabulary' });
+  }
+});
+
+// API route to serve philosophical quotes from Excel file
+app.get('/api/quotes', (req, res) => {
+  try {
+    const filePath = path.join(__dirname, 'philosophical_quotes.xlsx');
+
+    if (!fs.existsSync(filePath)) {
+      // If the file doesn't exist, return an empty array
+      return res.json({ quotes: [] });
+    }
+
+    const workbook = XLSX.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const quotes = XLSX.utils.sheet_to_json(worksheet);
+
+    res.json({ quotes });
+  } catch (error) {
+    console.error('Error reading quotes Excel file:', error);
+    res.status(500).json({ error: 'Failed to read quotes file' });
   }
 });
 

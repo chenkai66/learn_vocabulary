@@ -13,14 +13,18 @@ class VocabularyApp {
         this.initializeElements();
         this.bindEvents();
         this.loadVocabularySets();
+        // Now that elements are initialized, refresh the theme suggestions
+        setTimeout(() => {
+            this.refreshThemeSuggestions();
+        }, 100); // Small delay to ensure DOM is fully ready
     }
 
-    initializeCurrentUser() {
-        // Initialize a default user since we removed authentication
-        this.currentUser = { username: 'default_user' };
-        document.getElementById('username-display').textContent = this.currentUser.username;
+    async initializeCurrentUser() {
+        // Initialize quotes data
+        await this.loadQuotes();
+        this.displayRandomQuote();
 
-        // Load and display recommended themes
+        // Load the themes data
         this.loadRecommendedThemes();
     }
 
@@ -1083,29 +1087,286 @@ class VocabularyApp {
             "Art Criticism: Marxist Criticism",
             "Art Criticism: Psychoanalytic Criticism"
         ];
-
-        this.refreshThemeSuggestions();
     }
 
     refreshThemeSuggestions() {
+        console.log('Refreshing theme suggestions...');
+        console.log('themeSuggestionsContainer:', this.themeSuggestionsContainer);
+
+        if (!this.themeSuggestionsContainer) {
+            console.error('themeSuggestionsContainer not found');
+            return;
+        }
+
         // Clear the current theme suggestions
         this.themeSuggestionsContainer.innerHTML = '';
 
-        // Select 6 random themes from the list
+        // Select 3 random themes from the list
         const shuffledThemes = [...this.allThemes].sort(() => 0.5 - Math.random());
-        const selectedThemes = shuffledThemes.slice(0, 6);
+        const selectedThemes = shuffledThemes.slice(0, 3);
+
+        console.log('Selected themes:', selectedThemes);
 
         // Create theme elements
         selectedThemes.forEach(theme => {
             const themeElement = document.createElement('span');
             themeElement.className = 'theme-suggestion';
-            // Extract a short display name from the theme
-            const displayName = theme.split(': ')[1] || theme.split(': ')[0] || theme;
+            // Extract a short display name from the theme (everything after the first colon and space)
+            const parts = theme.split(': ');
+            let displayName = theme;
+            if (parts.length > 1) {
+                // Join all parts after the first one to handle cases where the description itself contains colons
+                displayName = parts.slice(1).join(': ');
+            }
             themeElement.textContent = displayName;
             themeElement.setAttribute('data-theme', theme);
 
             this.themeSuggestionsContainer.appendChild(themeElement);
         });
+
+        console.log('Theme suggestions refreshed');
+    }
+
+    async loadQuotes() {
+        try {
+            // Fetch quotes from the Excel file via the server
+            const response = await fetch('/api/quotes');
+            if (response.ok) {
+                const data = await response.json();
+                console.log('API response:', data); // Debug log
+                this.quotes = data.quotes.map(quote => ({
+                    en: quote.quote,
+                    zh: this.translateToChinese(quote.quote), // Simple placeholder - in a real app you'd have proper translations
+                    author: quote.author
+                }));
+                console.log('Processed quotes:', this.quotes); // Debug log
+            } else {
+                console.error('API call failed, using fallback quotes'); // Debug log
+                // Fallback to default quotes if API call fails
+                this.quotes = [
+                    {
+                        en: "The only way to do great work is to love what you do.",
+                        zh: "做出伟大工作的唯一方法就是热爱你所做的事。",
+                        author: "Steve Jobs"
+                    },
+                    {
+                        en: "Life is what happens to you while you're busy making other plans.",
+                        zh: "生活就是当你忙于做其他计划时发生在你身上的事。",
+                        author: "John Lennon"
+                    },
+                    {
+                        en: "The future belongs to those who believe in the beauty of their dreams.",
+                        zh: "未来属于那些相信自己梦想之美的人。",
+                        author: "Eleanor Roosevelt"
+                    },
+                    {
+                        en: "It is during our darkest moments that we must focus to see the light.",
+                        zh: "正是在我们最黑暗的时刻，我们必须专注于看到光明。",
+                        author: "Aristotle"
+                    },
+                    {
+                        en: "Success is not final, failure is not fatal: It is the courage to continue that counts.",
+                        zh: "成功不是终点，失败不是致命的：重要的是继续的勇气。",
+                        author: "Winston Churchill"
+                    },
+                    {
+                        en: "The only impossible journey is the one you never begin.",
+                        zh: "唯一不可能的旅程是你从未开始的旅程。",
+                        author: "Tony Robbins"
+                    },
+                    {
+                        en: "In the end, we will remember not the words of our enemies, but the silence of our friends.",
+                        zh: "最终，我们记住的不是敌人的话语，而是朋友的沉默。",
+                        author: "Martin Luther King Jr."
+                    },
+                    {
+                        en: "The way to get started is to quit talking and begin doing.",
+                        zh: "开始的方法是停止说话，开始行动。",
+                        author: "Walt Disney"
+                    },
+                    {
+                        en: "Don't let yesterday take up too much of today.",
+                        zh: "不要让昨天占据今天太多。",
+                        author: "Will Rogers"
+                    },
+                    {
+                        en: "You learn more from failure than from success. Don't let it stop you. Failure builds character.",
+                        zh: "你从失败中学到的比从成功中学到的更多。不要让它阻止你。失败塑造性格。",
+                        author: "Unknown"
+                    }
+                ];
+            }
+        } catch (error) {
+            console.error('Error loading quotes:', error);
+            // Fallback to default quotes
+            this.quotes = [
+                {
+                    en: "The only way to do great work is to love what you do.",
+                    zh: "做出伟大工作的唯一方法就是热爱你所做的事。",
+                    author: "Steve Jobs"
+                },
+                {
+                    en: "Life is what happens to you while you're busy making other plans.",
+                    zh: "生活就是当你忙于做其他计划时发生在你身上的事。",
+                    author: "John Lennon"
+                },
+                {
+                    en: "The future belongs to those who believe in the beauty of their dreams.",
+                    zh: "未来属于那些相信自己梦想之美的人。",
+                    author: "Eleanor Roosevelt"
+                },
+                {
+                    en: "It is during our darkest moments that we must focus to see the light.",
+                    zh: "正是在我们最黑暗的时刻，我们必须专注于看到光明。",
+                    author: "Aristotle"
+                },
+                {
+                    en: "Success is not final, failure is not fatal: It is the courage to continue that counts.",
+                    zh: "成功不是终点，失败不是致命的：重要的是继续的勇气。",
+                    author: "Winston Churchill"
+                },
+                {
+                    en: "The only impossible journey is the one you never begin.",
+                    zh: "唯一不可能的旅程是你从未开始的旅程。",
+                    author: "Tony Robbins"
+                },
+                {
+                    en: "In the end, we will remember not the words of our enemies, but the silence of our friends.",
+                    zh: "最终，我们记住的不是敌人的话语，而是朋友的沉默。",
+                    author: "Martin Luther King Jr."
+                },
+                {
+                    en: "The way to get started is to quit talking and begin doing.",
+                    zh: "开始的方法是停止说话，开始行动。",
+                    author: "Walt Disney"
+                },
+                {
+                    en: "Don't let yesterday take up too much of today.",
+                    zh: "不要让昨天占据今天太多。",
+                    author: "Will Rogers"
+                },
+                {
+                    en: "You learn more from failure than from success. Don't let it stop you. Failure builds character.",
+                    zh: "你从失败中学到的比从成功中学到的更多。不要让它阻止你。失败塑造性格。",
+                    author: "Unknown"
+                }
+            ];
+        }
+    }
+
+    // Simple translation function - in a real app you'd use a proper translation API
+    translateToChinese(englishText) {
+        // This is a placeholder - in a real implementation you would use a translation API
+        const translations = {
+            "The only way to do great work is to love what you do.": "做出伟大工作的唯一方法就是热爱你所做的事。",
+            "Life is what happens to you while you're busy making other plans.": "生活就是当你忙于做其他计划时发生在你身上的事。",
+            "The future belongs to those who believe in the beauty of their dreams.": "未来属于那些相信自己梦想之美的人。",
+            "It is during our darkest moments that we must focus to see the light.": "正是在我们最黑暗的时刻，我们必须专注于看到光明。",
+            "Success is not final, failure is not fatal: It is the courage to continue that counts.": "成功不是终点，失败不是致命的：重要的是继续的勇气。",
+            "The only impossible journey is the one you never begin.": "唯一不可能的旅程是你从未开始的旅程。",
+            "In the end, we will remember not the words of our enemies, but the silence of our friends.": "最终，我们记住的不是敌人的话语，而是朋友的沉默。",
+            "The way to get started is to quit talking and begin doing.": "开始的方法是停止说话，开始行动。",
+            "Don't let yesterday take up too much of today.": "不要让昨天占据今天太多。",
+            "You learn more from failure than from success. Don't let it stop you. Failure builds character.": "你从失败中学到的比从成功中学到的更多。不要让它阻止你。失败塑造性格。",
+            "The unexamined life is not worth living.": "未经审视的生活不值得过。",
+            "To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment.": "在一个不断试图让你成为其他人的世界中做自己，是最伟大的成就。",
+            "The only true wisdom is in knowing you know nothing.": "唯一的真正智慧在于知道自己一无所知。",
+            "He who is not a good servant will not be a good master.": "不好好当下属的人不会成为好领导。",
+            "The good life is a process, not a state of being.": "美好生活是一个过程，而不是一种存在状态。",
+            "Man is the only creature who refuses to be what he is.": "人是唯一拒绝成为自己的生物。",
+            "The greatest wealth is to live content with little.": "最大的财富是知足常乐。",
+            "What we think, we become.": "我们所想的，就会成为我们。",
+            "The only way to deal with an unfree world is to become so absolutely free that your very existence is an act of rebellion.": "应对不自由世界的唯一方法是变得如此绝对自由，以至于你的存在本身就是一种反抗行为。",
+            "Happiness is the highest good and the end at which all human activity aims.": "幸福是最高的善，是所有人类活动的目标。",
+            "The mind is everything. What you think you become.": "心是一切。你所想的，就会成为什么。",
+            "The greatest remedy for anger is delay.": "治疗愤怒的最好方法是延迟反应。",
+            "The measure of a man is what he does with power.": "衡量一个人的标准是他如何使用权力。",
+            "The only real prison is fear, and the only real freedom is freedom from fear.": "唯一的真正监狱是恐惧，唯一的真正自由是摆脱恐惧的自由。",
+            "The unspoken word is the most eloquent.": "未说出口的话是最雄辩的。",
+            "The only constant in life is change.": "生活中唯一的不变就是变化。",
+            "The greatest danger for most of us lies not in setting our aim too high and falling short; but in setting our aim too low, and achieving our mark.": "对我们大多数人来说，最大的危险不在于目标定得太高而达不到，而在于目标定得太低而轻易实现。",
+            "The best way to find out if you can trust somebody is to trust them.": "了解你是否可以信任某人的最好方法是信任他们。",
+            "The only way to make sense out of change is to plunge into it, move with it, and join the dance.": "理解变化的唯一方法是投身其中，随其移动，并加入这场舞蹈。",
+            "The greatest glory in living lies not in never falling, but in rising every time we fall.": "生命中最伟大的荣耀不在于从不跌倒，而在于每次跌倒后都能重新站起来。",
+            "The only thing we have to fear is fear itself.": "我们唯一需要害怕的就是害怕本身。",
+            "The best preparation for tomorrow is doing your best today.": "为明天做准备的最好方法是今天尽力而为。",
+            "The greatest weapon against stress is our ability to choose one thought over another.": "对抗压力的最强大武器是我们选择一个想法而不是另一个想法的能力。",
+            "The future belongs to those who believe in the beauty of their dreams.": "未来属于那些相信自己梦想之美的人。",
+            "The only impossible journey is the one you never begin.": "唯一不可能的旅程是你从未开始的旅程。",
+            "The only thing we absolutely need to function is the love of just one person.": "我们绝对需要的只是一个人的爱。",
+            "The greatest discovery of all time is that a person can change his future by merely changing his attitude.": "有史以来最伟大的发现是，一个人只需改变态度就能改变未来。",
+            "The only real mistake is the one from which we learn nothing.": "唯一的真正错误是我们没有从中学习的错误。",
+            "The greatest danger for most of us is not that our aim is too high and we miss it, but that it is too low and we reach it.": "对我们大多数人来说，最大的危险不是目标太高而错过，而是目标太低而达到。",
+            "The greatest wealth is not money, but spiritual wealth.": "最大的财富不是金钱，而是精神财富。",
+            "The only thing you absolutely have to do in this world is to live your life.": "在这个世界上，你绝对要做的唯一事情就是过你的生活。",
+            "The greatest pleasure of life is what people think of us.": "人生最大的快乐是别人对我们的看法。",
+            "The only true failure in life is not to be true to your best.": "生活中唯一的真正失败是不忠于你的最佳状态。",
+            "The greatest gift of life is to learn how to love.": "生命最大的礼物是学会如何爱。",
+            "The only way to have a friend is to be one.": "拥有朋友的唯一方法是成为一个朋友。",
+            "The greatest weapon against stress is our ability to choose one thought over another.": "对抗压力的最强大武器是我们选择一个想法而不是另一个想法的能力。",
+            "The only way to do great work is to love what you do.": "做出伟大工作的唯一方法就是热爱你所做的事。",
+            "The greatest danger for most of us lies not in setting our aim too high and falling short; but in setting our aim too low, and achieving our mark.": "对我们大多数人来说，最大的危险不在于目标定得太高而达不到，而在于目标定得太低而轻易实现。",
+            "The only thing we absolutely need to function is the love of just one person.": "我们绝对需要的只是一个人的爱。",
+            "The greatest discovery of all time is that a person can change his future by merely changing his attitude.": "有史以来最伟大的发现是，一个人只需改变态度就能改变未来。",
+            "The only real mistake is the one from which we learn nothing.": "唯一的真正错误是我们没有从中学习的错误。",
+            "The greatest glory in living lies not in never falling, but in rising every time we fall.": "生命中最伟大的荣耀不在于从不跌倒，而在于每次跌倒后都能重新站起来。",
+            "The only way to make sense out of change is to plunge into it, move with it, and join the dance.": "理解变化的唯一方法是投身其中，随其移动，并加入这场舞蹈。",
+            "The greatest wealth is not money, but spiritual wealth.": "最大的财富不是金钱，而是精神财富。",
+            "The only thing you absolutely have to do in this world is to live your life.": "在这个世界上，你绝对要做的唯一事情就是过你的生活。",
+            "The greatest pleasure of life is what people think of us.": "人生最大的快乐是别人对我们的看法。",
+            "The only true failure in life is not to be true to your best.": "生活中唯一的真正失败是不忠于你的最佳状态。",
+            "The greatest gift of life is to learn how to love.": "生命最大的礼物是学会如何爱。",
+            "The only way to have a friend is to be one.": "拥有朋友的唯一方法是成为一个朋友。",
+            "The greatest discovery of all time is that a person can change his future by merely changing his attitude.": "有史以来最伟大的发现是，一个人只需改变态度就能改变未来。",
+            "The only thing we have to fear is fear itself.": "我们唯一需要害怕的就是害怕本身。",
+            "The greatest glory in living lies not in never falling, but in rising every time we fall.": "生命中最伟大的荣耀不在于从不跌倒，而在于每次跌倒后都能重新站起来。",
+            "The only impossible journey is the one you never begin.": "唯一不可能的旅程是你从未开始的旅程。",
+            "The greatest weapon against stress is our ability to choose one thought over another.": "对抗压力的最强大武器是我们选择一个想法而不是另一个想法的能力。",
+            "The only way to do great work is to love what you do.": "做出伟大工作的唯一方法就是热爱你所做的事。",
+            "The future belongs to those who believe in the beauty of their dreams.": "未来属于那些相信自己梦想之美的人。",
+            "The greatest danger for most of us lies not in setting our aim too high and falling short; but in setting our aim too low, and achieving our mark.": "对我们大多数人来说，最大的危险不在于目标定得太高而达不到，而在于目标定得太低而轻易实现。",
+            "The only thing we absolutely need to function is the love of just one person.": "我们绝对需要的只是一个人的爱。",
+            "The greatest discovery of all time is that a person can change his future by merely changing his attitude.": "有史以来最伟大的发现是，一个人只需改变态度就能改变未来。",
+            "The only real mistake is the one from which we learn nothing.": "唯一的真正错误是我们没有从中学习的错误。",
+            "The greatest glory in living lies not in never falling, but in rising every time we fall.": "生命中最伟大的荣耀不在于从不跌倒，而在于每次跌倒后都能重新站起来。",
+            "The only way to make sense out of change is to plunge into it, move with it, and join the dance.": "理解变化的唯一方法是投身其中，随其移动，并加入这场舞蹈。",
+            "The greatest wealth is not money, but spiritual wealth.": "最大的财富不是金钱，而是精神财富。",
+            "The only thing you absolutely have to do in this world is to live your life.": "在这个世界上，你绝对要做的唯一事情就是过你的生活。",
+            "The greatest pleasure of life is what people think of us.": "人生最大的快乐是别人对我们的看法。",
+            "The only true failure in life is not to be true to your best.": "生活中唯一的真正失败是不忠于你的最佳状态。",
+            "The greatest gift of life is to learn how to love.": "生命最大的礼物是学会如何爱。",
+            "The only way to have a friend is to be one.": "拥有朋友的唯一方法是成为一个朋友。",
+            "The greatest discovery of all time is that a person can change his future by merely changing his attitude.": "有史以来最伟大的发现是，一个人只需改变态度就能改变未来。",
+            "The only thing we have to fear is fear itself.": "我们唯一需要害怕的就是害怕本身。",
+            "The greatest glory in living lies not in never falling, but in rising every time we fall.": "生命中最伟大的荣耀不在于从不跌倒，而在于每次跌倒后都能重新站起来。",
+            "The only impossible journey is the one you never begin.": "唯一不可能的旅程是你从未开始的旅程。",
+            "The greatest weapon against stress is our ability to choose one thought over another.": "对抗压力的最强大武器是我们选择一个想法而不是另一个想法的能力。",
+            "The only way to do great work is to love what you do.": "做出伟大工作的唯一方法就是热爱你所做的事。",
+            "The future belongs to those who believe in the beauty of their dreams.": "未来属于那些相信自己梦想之美的人。",
+            "The greatest danger for most of us lies not in setting our aim too high and falling short; but in setting our aim too low, and achieving our mark.": "对我们大多数人来说，最大的危险不在于目标定得太高而达不到，而在于目标定得太低而轻易实现。",
+            "The only thing we absolutely need to function is the love of just one person.": "我们绝对需要的只是一个人的爱。",
+            "The greatest discovery of all time is that a person can change his future by merely changing his attitude.": "有史以来最伟大的发现是，一个人只需改变态度就能改变未来。",
+            "The only real mistake is the one from which we learn nothing.": "唯一的真正错误是我们没有从中学习的错误。"
+        };
+
+        return translations[englishText] || `[Chinese translation not available for: ${englishText.substring(0, 30)}...]`;
+    }
+
+    displayRandomQuote() {
+        if (!this.quotes || this.quotes.length === 0) {
+            this.loadQuotes();
+        }
+
+        const randomIndex = Math.floor(Math.random() * this.quotes.length);
+        const quote = this.quotes[randomIndex];
+
+        const quoteTextElement = document.getElementById('quote-text');
+        const quoteAuthorElement = document.getElementById('quote-author');
+
+        if (quoteTextElement && quoteAuthorElement) {
+            quoteTextElement.textContent = `"${quote.en}" - ${quote.zh}`;
+            quoteAuthorElement.textContent = quote.author;
+        }
     }
 
     initializeElements() {
@@ -1131,8 +1392,16 @@ class VocabularyApp {
         if (!this.startSingleReviewBtn) console.error('start-single-review-btn not found');
         if (!this.reviewContainer) console.error('review-container not found');
         if (!this.usernameDisplay) console.error('username-display not found');
-        if (!this.refreshThemesBtn) console.error('refresh-themes-btn not found');
-        if (!this.themeSuggestionsContainer) console.error('theme-suggestions not found');
+        if (!this.refreshThemesBtn) {
+            console.error('refresh-themes-btn not found');
+        } else {
+            console.log('refresh-themes-btn found:', this.refreshThemesBtn);
+        }
+        if (!this.themeSuggestionsContainer) {
+            console.error('theme-suggestions not found');
+        } else {
+            console.log('theme-suggestions found:', this.themeSuggestionsContainer);
+        }
     }
 
     bindEvents() {
@@ -1168,6 +1437,7 @@ class VocabularyApp {
 
         // Add event listener for refresh themes button
         this.refreshThemesBtn.addEventListener('click', () => {
+            console.log('Refresh button clicked');
             this.refreshThemeSuggestions();
         });
     }
@@ -1322,7 +1592,6 @@ class VocabularyApp {
             // Create a summary view showing just the theme and word list
             card.innerHTML = `
                 <h3>${set.theme}</h3>
-                <div class="theme">Theme: ${set.theme}</div>
 
                 <div class="word-list">
                     <h4>Words in this set:</h4>
@@ -1688,9 +1957,16 @@ class VocabularyApp {
         this.selectedWord.dataset.matchedTo = defIndex;
         this.selectedDefinition.dataset.matchedTo = wordIndex;
 
-        // Mark as temporarily matched
-        this.selectedWord.classList.add('temp-matched');
-        this.selectedDefinition.classList.add('temp-matched');
+        // Generate a unique pairing ID for color variation
+        if (!this.pairingAttemptCount) {
+            this.pairingAttemptCount = 0;
+        }
+        this.pairingAttemptCount++;
+        const pairingClass = `pairing-attempt-${this.pairingAttemptCount % 5}`; // Cycle through 5 different colors
+
+        // Mark as temporarily matched with a unique pairing class
+        this.selectedWord.classList.add('temp-matched', pairingClass);
+        this.selectedDefinition.classList.add('temp-matched', pairingClass);
 
         // Clear selections
         this.selectedWord.classList.remove('selected');
@@ -1707,9 +1983,17 @@ class VocabularyApp {
             const oldDef = document.querySelector(`[data-type="definition"][data-index="${oldDefIndex}"]`);
             if (oldDef) {
                 oldDef.classList.remove('temp-matched');
+                // Remove any pairing attempt classes
+                for (let i = 0; i < 5; i++) {
+                    oldDef.classList.remove(`pairing-attempt-${i}`);
+                }
                 delete oldDef.dataset.matchedTo;
             }
             this.selectedWord.classList.remove('temp-matched');
+            // Remove any pairing attempt classes
+            for (let i = 0; i < 5; i++) {
+                this.selectedWord.classList.remove(`pairing-attempt-${i}`);
+            }
             delete this.selectedWord.dataset.matchedTo;
         }
 
@@ -1719,9 +2003,17 @@ class VocabularyApp {
             const oldWord = document.querySelector(`[data-type="word"][data-index="${oldWordIndex}"]`);
             if (oldWord) {
                 oldWord.classList.remove('temp-matched');
+                // Remove any pairing attempt classes
+                for (let i = 0; i < 5; i++) {
+                    oldWord.classList.remove(`pairing-attempt-${i}`);
+                }
                 delete oldWord.dataset.matchedTo;
             }
             this.selectedDefinition.classList.remove('temp-matched');
+            // Remove any pairing attempt classes
+            for (let i = 0; i < 5; i++) {
+                this.selectedDefinition.classList.remove(`pairing-attempt-${i}`);
+            }
             delete this.selectedDefinition.dataset.matchedTo;
         }
     }
@@ -1742,7 +2034,64 @@ class VocabularyApp {
             return;
         }
 
-        // Calculate correct matches
+        // Calculate matches based on original correct pairs
+        for (let i = 0; i < 5; i++) {
+            const wordItem = document.querySelector(`[data-type="word"][data-index="${i}"]`);
+            if (wordItem && wordItem.dataset.matchedTo !== undefined) {
+                const matchedDefIndex = parseInt(wordItem.dataset.matchedTo);
+                const correctDefinition = this.reviewPairs[i].definition;
+                const matchedDefText = document.querySelector(`[data-type="definition"][data-index="${matchedDefIndex}"]`).textContent.trim();
+
+                // Find what the correct definition index should be
+                const correctDefIndex = this.reviewPairs.findIndex(pair => pair.definition === correctDefinition);
+
+                if (correctDefinition === matchedDefText) {
+                    // User matched the correct pair - mark with success color
+                    wordItem.classList.add('correct');
+                    const matchedDef = document.querySelector(`[data-type="definition"][data-index="${matchedDefIndex}"]`);
+                    if (matchedDef) {
+                        matchedDef.classList.add('correct');
+                        wordItem.classList.add('matched'); // Final match
+                        matchedDef.classList.add('matched'); // Final match
+
+                        // Add checkmark indicator to the word
+                        const indicator = document.createElement('span');
+                        indicator.className = 'match-indicator correct-indicator';
+                        indicator.textContent = '✓';
+                        wordItem.appendChild(indicator);
+
+                        // Also add checkmark to the definition
+                        const defIndicator = document.createElement('span');
+                        defIndicator.className = 'match-indicator correct-indicator';
+                        defIndicator.textContent = '✓';
+                        matchedDef.appendChild(defIndicator);
+                    }
+                } else {
+                    // User matched incorrectly - mark with error color
+                    wordItem.classList.add('incorrect');
+                    const matchedDef = document.querySelector(`[data-type="definition"][data-index="${matchedDefIndex}"]`);
+                    if (matchedDef) {
+                        matchedDef.classList.add('incorrect');
+                        wordItem.classList.add('matched'); // Final match
+                        matchedDef.classList.add('matched'); // Final match
+
+                        // Add X indicator to the word
+                        const indicator = document.createElement('span');
+                        indicator.className = 'match-indicator incorrect-indicator';
+                        indicator.textContent = '✗';
+                        wordItem.appendChild(indicator);
+
+                        // Also add X to the definition
+                        const defIndicator = document.createElement('span');
+                        defIndicator.className = 'match-indicator incorrect-indicator';
+                        defIndicator.textContent = '✗';
+                        matchedDef.appendChild(defIndicator);
+                    }
+                }
+            }
+        }
+
+        // Count correct matches for feedback
         let correctCount = 0;
         for (let i = 0; i < 5; i++) {
             const wordItem = document.querySelector(`[data-type="word"][data-index="${i}"]`);
@@ -1753,23 +2102,6 @@ class VocabularyApp {
 
                 if (correctDefinition === matchedDefText) {
                     correctCount++;
-                    // Mark as correct
-                    wordItem.classList.add('correct');
-                    wordItem.classList.remove('temp-matched');
-                    const matchedDef = document.querySelector(`[data-type="definition"][data-index="${matchedDefIndex}"]`);
-                    matchedDef.classList.add('correct');
-                    matchedDef.classList.remove('temp-matched');
-                    wordItem.classList.add('matched'); // Final match
-                    matchedDef.classList.add('matched'); // Final match
-                } else {
-                    // Mark as incorrect
-                    wordItem.classList.add('incorrect');
-                    wordItem.classList.remove('temp-matched');
-                    const matchedDef = document.querySelector(`[data-type="definition"][data-index="${matchedDefIndex}"]`);
-                    matchedDef.classList.add('incorrect');
-                    matchedDef.classList.remove('temp-matched');
-                    wordItem.classList.add('matched'); // Final match
-                    matchedDef.classList.add('matched'); // Final match
                 }
             }
         }
@@ -1786,10 +2118,18 @@ class VocabularyApp {
     resetReview() {
         this.selectedWord = null;
         this.selectedDefinition = null;
+        this.pairingAttemptCount = 0; // Reset the pairing attempt counter
 
         // Reset UI
         document.querySelectorAll('.match-item').forEach(item => {
             item.classList.remove('selected', 'matched', 'correct', 'incorrect', 'temp-matched');
+            // Remove all pairing attempt classes
+            for (let i = 0; i < 5; i++) {
+                item.classList.remove(`pairing-attempt-${i}`);
+            }
+            // Remove any match indicators
+            const indicators = item.querySelectorAll('.match-indicator');
+            indicators.forEach(indicator => indicator.remove());
             delete item.dataset.matchedTo;
         });
 

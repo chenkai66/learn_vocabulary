@@ -10,9 +10,9 @@
     <div id="app">
         <header>
             <h1>Advanced Vocabulary Learning</h1>
-            <div id="user-info">
-                <span id="welcome-message">Welcome, </span>
-                <span id="username-display">User</span>
+            <div id="quote-display">
+                <p id="quote-text">Loading quote...</p>
+                <p id="quote-author">-</p>
             </div>
         </header>
 
@@ -22,16 +22,15 @@
                     <section id="generation-section">
                         <h2>Generate New Vocabulary</h2>
                         <input type="text" id="theme-input" placeholder="Enter keywords for theme (e.g., 'biology: genetics', 'computer science: AI') or leave empty for random">
-                        <div id="theme-suggestions">
-                            <span class="theme-suggestion" data-theme="Computer Science: AI and Machine Learning">AI & ML</span>
-                            <span class="theme-suggestion" data-theme="Biological Sciences: Genetics">Genetics</span>
-                            <span class="theme-suggestion" data-theme="Environmental Sciences: Climate Change">Climate Change</span>
-                            <span class="theme-suggestion" data-theme="Psychology: Cognitive Science">Cognitive Science</span>
-                            <span class="theme-suggestion" data-theme="Medicine: Neuroscience">Neuroscience</span>
-                            <span class="theme-suggestion" data-theme="Business: Economics">Economics</span>
-                        </div>
-                        <div class="theme-suggestions-controls">
-                            <button id="refresh-themes-btn" class="refresh-btn">Refresh Themes</button>
+                        <div class="theme-suggestions-container">
+                            <div id="theme-suggestions">
+                                <span class="theme-suggestion" data-theme="Computer Science: AI and Machine Learning">AI & ML</span>
+                                <span class="theme-suggestion" data-theme="Biological Sciences: Genetics">Genetics</span>
+                                <span class="theme-suggestion" data-theme="Environmental Sciences: Climate Change">Climate Change</span>
+                            </div>
+                            <button id="refresh-themes-btn" class="refresh-btn" title="Refresh themes">
+                                <span class="refresh-icon">↻</span>
+                            </button>
                         </div>
                         <button id="generate-btn">Learn Some Words</button>
                         <input type="text" id="word-input" placeholder="Enter a specific word to learn...">
