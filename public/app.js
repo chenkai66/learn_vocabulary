@@ -1104,12 +1104,6 @@ class VocabularyApp {
             themeElement.textContent = displayName;
             themeElement.setAttribute('data-theme', theme);
 
-            // Add click event to populate the theme input field
-            themeElement.addEventListener('click', () => {
-                this.themeInput.value = theme;
-                this.themeInput.focus();
-            });
-
             this.themeSuggestionsContainer.appendChild(themeElement);
         });
     }
@@ -1162,7 +1156,8 @@ class VocabularyApp {
         });
 
         // Add event listeners for theme suggestions - only fill the input field
-        document.getElementById('theme-suggestions').addEventListener('click', (e) => {
+        // Using event delegation to handle both static and dynamically created elements
+        this.themeSuggestionsContainer.addEventListener('click', (e) => {
             if (e.target.classList.contains('theme-suggestion')) {
                 const theme = e.target.getAttribute('data-theme');
                 this.themeInput.value = theme;
