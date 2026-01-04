@@ -1084,22 +1084,25 @@ class VocabularyApp {
             "Art Criticism: Psychoanalytic Criticism"
         ];
 
-        this.displayRecommendedThemes();
+        this.refreshThemeSuggestions();
     }
 
-    displayRecommendedThemes() {
-        // Clear the current recommended themes
-        this.recommendedThemesContainer.innerHTML = '';
+    refreshThemeSuggestions() {
+        // Clear the current theme suggestions
+        this.themeSuggestionsContainer.innerHTML = '';
 
-        // Select 12 random themes from the list
+        // Select 6 random themes from the list
         const shuffledThemes = [...this.allThemes].sort(() => 0.5 - Math.random());
-        const selectedThemes = shuffledThemes.slice(0, 12);
+        const selectedThemes = shuffledThemes.slice(0, 6);
 
         // Create theme elements
         selectedThemes.forEach(theme => {
-            const themeElement = document.createElement('div');
-            themeElement.className = 'recommended-theme';
-            themeElement.textContent = theme;
+            const themeElement = document.createElement('span');
+            themeElement.className = 'theme-suggestion';
+            // Extract a short display name from the theme
+            const displayName = theme.split(': ')[1] || theme.split(': ')[0] || theme;
+            themeElement.textContent = displayName;
+            themeElement.setAttribute('data-theme', theme);
 
             // Add click event to populate the theme input field
             themeElement.addEventListener('click', () => {
@@ -1107,7 +1110,7 @@ class VocabularyApp {
                 this.themeInput.focus();
             });
 
-            this.recommendedThemesContainer.appendChild(themeElement);
+            this.themeSuggestionsContainer.appendChild(themeElement);
         });
     }
 
@@ -1122,7 +1125,7 @@ class VocabularyApp {
         this.reviewContainer = document.getElementById('review-container');
         this.usernameDisplay = document.getElementById('username-display');
         this.refreshThemesBtn = document.getElementById('refresh-themes-btn');
-        this.recommendedThemesContainer = document.getElementById('recommended-themes');
+        this.themeSuggestionsContainer = document.getElementById('theme-suggestions');
 
         // Check if elements were found
         if (!this.generateBtn) console.error('generate-btn not found');
@@ -1135,7 +1138,7 @@ class VocabularyApp {
         if (!this.reviewContainer) console.error('review-container not found');
         if (!this.usernameDisplay) console.error('username-display not found');
         if (!this.refreshThemesBtn) console.error('refresh-themes-btn not found');
-        if (!this.recommendedThemesContainer) console.error('recommended-themes not found');
+        if (!this.themeSuggestionsContainer) console.error('theme-suggestions not found');
     }
 
     bindEvents() {
@@ -1170,7 +1173,7 @@ class VocabularyApp {
 
         // Add event listener for refresh themes button
         this.refreshThemesBtn.addEventListener('click', () => {
-            this.displayRecommendedThemes();
+            this.refreshThemeSuggestions();
         });
     }
 
