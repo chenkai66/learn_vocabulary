@@ -179,7 +179,7 @@ Respond ONLY with valid JSON in this format:
 Ensure the vocabulary words are advanced, have tight thematic coherence within a specialized domain, and serve distinct but related roles. Each word should have:
 - A precise part of speech that reflects its specific usage in the domain
 - A definition in Chinese that captures the nuanced meaning in the specific context
-- A memory aid in Chinese that offers a specific technique for retention (etymology, association, contrast, etc.) - this should be a technique to help remember the word, not an explanation of the word's meaning
+- A memory aid in Chinese that offers a specific technique for retention using letter/syllable decomposition - break the word into its components and assign visual/associative meanings to each part (e.g., "CRISPR" could be broken down as C=cell, R=RNA, I=interaction, S=system, P=protein, R=repair). This should be a technique to help remember the word, not an explanation of the word's meaning
 - An example sentence in ${language} that demonstrates the word's usage in an academic or professional context with translation in ${language}
 
 The mini-narrative story must seamlessly integrate ALL 10 vocabulary words into a coherent narrative or discussion that exemplifies the theme. Each word should feel naturally placed, not forced, and contribute to the overall meaning of the story. The story should demonstrate how these specialized terms interconnect within the specific domain. Most importantly, replace "PRECISE PRIMARY CATEGORY: SECONDARY SUB-CATEGORY" with a specific and extremely narrow topic that combines both a primary category and a detailed sub-category. Do NOT include timestamp in the JSON response - this will be added by the system automatically. Do NOT use generic themes like "Technology and Innovation" or placeholder text like "thematic connection of the words".`;
@@ -223,7 +223,7 @@ Respond ONLY with valid JSON in this format:
 Ensure the vocabulary words are advanced, have tight thematic coherence within a specialized domain related to the provided keywords, and serve distinct but related roles. Each word should have:
 - A precise part of speech that reflects its specific usage in the domain
 - A definition in Chinese that captures the nuanced meaning in the specific context
-- A memory aid in Chinese that offers a specific technique for retention (etymology, association, contrast, etc.) - this should be a technique to help remember the word, not an explanation of the word's meaning
+- A memory aid in Chinese that offers a specific technique for retention using letter/syllable decomposition - break the word into its components and assign visual/associative meanings to each part (e.g., "CRISPR" could be broken down as C=cell, R=RNA, I=interaction, S=system, P=protein, R=repair). This should be a technique to help remember the word, not an explanation of the word's meaning
 - An example sentence in ${language} that demonstrates the word's usage in an academic or professional context with translation in ${language}
 
 The mini-narrative story must seamlessly integrate ALL 10 vocabulary words into a coherent narrative or discussion that exemplifies the theme based on the provided keywords. Each word should feel naturally placed, not forced, and contribute to the overall meaning of the story. The story should demonstrate how these specialized terms interconnect within the specific domain. Most importantly, make the theme relevant to the provided keywords. Do NOT include timestamp in the JSON response - this will be added by the system automatically. Do NOT use generic themes like "Technology and Innovation" or placeholder text like "thematic connection of the words".`;
@@ -279,7 +279,7 @@ Respond ONLY with valid JSON in this format:
 
 Provide a comprehensive breakdown of the requested word.
 
-IMPORTANT: The memoryTips field should contain specific techniques to help remember the word, not just explanations of the word's meaning. Use techniques like etymology, association, contrast, etc.`;
+IMPORTANT: The memoryTips field should contain specific techniques to help remember the word, not just explanations of the word's meaning. Use techniques like letter/syllable decomposition - break the word into its components and assign visual/associative meanings to each part (e.g., "CRISPR" could be broken down as C=cell, R=RNA, I=interaction, S=system, P=protein, R=repair).`;
     }
 
     // Try up to 3 times to get valid data
