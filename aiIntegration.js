@@ -139,7 +139,7 @@ async function generateVocabulary(userInput, existingWords = [], language = 'en'
     if (userInput === "Learn Some Words" || userInput === "new") {
       // Generate a new vocabulary set
       const existingWordsText = existingWords.length > 0 ? `IMPORTANT: DO NOT include the following words that have already been generated for this theme: ${existingWords.join(', ')}. ` : '';
-      prompt = `You are an advanced English vocabulary tutor that generates structured JSON data for vocabulary learning applications. Your task is to generate a vocabulary set in the specified JSON format.
+      prompt = `You are an advanced vocabulary tutor that generates structured JSON data for vocabulary learning applications. Your task is to generate a vocabulary set in the specified JSON format.
 
 ${languageInstruction}
 ${existingWordsText}Generate a new set of 10 advanced vocabulary words with a highly specific and focused theme. The words should be tightly connected within a narrow domain and serve distinct but complementary roles (not synonyms). Choose a precise and nuanced theme that includes both a primary category and a secondary sub-category. Primary categories include: "Computer Science", "Biological Sciences", "Physical Sciences", "Social Sciences", "Health Sciences", "Engineering", "Business & Economics", "Arts & Humanities", "Environmental Sciences", "Mathematics & Statistics", "Psychology & Cognitive Science", "Law & Justice", "Education", "Medicine", "Agriculture & Food Sciences". Secondary sub-categories should be extremely specific, such as:
@@ -179,7 +179,7 @@ Respond ONLY with valid JSON in this format:
 Ensure the vocabulary words are advanced, have tight thematic coherence within a specialized domain, and serve distinct but related roles. Each word should have:
 - A precise part of speech that reflects its specific usage in the domain
 - A definition in Chinese that captures the nuanced meaning in the specific context
-- A memory aid in Chinese that offers a specific technique for retention (etymology, association, contrast, etc.)
+- A memory aid in Chinese that offers a specific technique for retention (etymology, association, contrast, etc.) - this should be a technique to help remember the word, not an explanation of the word's meaning
 - An example sentence in ${language} that demonstrates the word's usage in an academic or professional context with translation in ${language}
 
 The mini-narrative story must seamlessly integrate ALL 10 vocabulary words into a coherent narrative or discussion that exemplifies the theme. Each word should feel naturally placed, not forced, and contribute to the overall meaning of the story. The story should demonstrate how these specialized terms interconnect within the specific domain. Most importantly, replace "PRECISE PRIMARY CATEGORY: SECONDARY SUB-CATEGORY" with a specific and extremely narrow topic that combines both a primary category and a detailed sub-category. Do NOT include timestamp in the JSON response - this will be added by the system automatically. Do NOT use generic themes like "Technology and Innovation" or placeholder text like "thematic connection of the words".`;
@@ -188,7 +188,7 @@ The mini-narrative story must seamlessly integrate ALL 10 vocabulary words into 
       const keywords = userInput.includes(": ") ? userInput.split(": ")[1] : userInput;
       // Generate a new vocabulary set based on user keywords
       const existingWordsText = existingWords.length > 0 ? `IMPORTANT: DO NOT include the following words that have already been generated for this theme: ${existingWords.join(', ')}. ` : '';
-      prompt = `You are an advanced English vocabulary tutor that generates structured JSON data for vocabulary learning applications. Your task is to generate a vocabulary set in the specified JSON format.
+      prompt = `You are an advanced vocabulary tutor that generates structured JSON data for vocabulary learning applications. Your task is to generate a vocabulary set in the specified JSON format.
 
 ${languageInstruction}
 ${existingWordsText}Generate a new set of 10 advanced vocabulary words with a highly specific and focused theme based on the following keywords: ${keywords}. The words should be tightly connected within a narrow domain related to these keywords and serve distinct but complementary roles (not synonyms).
@@ -223,13 +223,13 @@ Respond ONLY with valid JSON in this format:
 Ensure the vocabulary words are advanced, have tight thematic coherence within a specialized domain related to the provided keywords, and serve distinct but related roles. Each word should have:
 - A precise part of speech that reflects its specific usage in the domain
 - A definition in Chinese that captures the nuanced meaning in the specific context
-- A memory aid in Chinese that offers a specific technique for retention (etymology, association, contrast, etc.)
+- A memory aid in Chinese that offers a specific technique for retention (etymology, association, contrast, etc.) - this should be a technique to help remember the word, not an explanation of the word's meaning
 - An example sentence in ${language} that demonstrates the word's usage in an academic or professional context with translation in ${language}
 
 The mini-narrative story must seamlessly integrate ALL 10 vocabulary words into a coherent narrative or discussion that exemplifies the theme based on the provided keywords. Each word should feel naturally placed, not forced, and contribute to the overall meaning of the story. The story should demonstrate how these specialized terms interconnect within the specific domain. Most importantly, make the theme relevant to the provided keywords. Do NOT include timestamp in the JSON response - this will be added by the system automatically. Do NOT use generic themes like "Technology and Innovation" or placeholder text like "thematic connection of the words".`;
     } else {
       // Generate a breakdown for a specific word
-      prompt = `You are an advanced English vocabulary tutor that generates structured JSON data for vocabulary learning applications. Your task is to provide a detailed breakdown of the word: "${userInput}".
+      prompt = `You are an advanced vocabulary tutor that generates structured JSON data for vocabulary learning applications. Your task is to provide a detailed breakdown of the word: "${userInput}".
 
 ${languageInstruction}
 
@@ -277,7 +277,9 @@ Respond ONLY with valid JSON in this format:
   }
 }
 
-Provide a comprehensive breakdown of the requested word.`;
+Provide a comprehensive breakdown of the requested word.
+
+IMPORTANT: The memoryTips field should contain specific techniques to help remember the word, not just explanations of the word's meaning. Use techniques like etymology, association, contrast, etc.`;
     }
 
     // Try up to 3 times to get valid data
