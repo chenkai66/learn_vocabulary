@@ -66,7 +66,8 @@ app.get('/api/vocabulary', async (req, res) => {
   try {
     // Use a default user directory (e.g., 'default_user') for non-authenticated access
     const username = 'default_user';
-    const vocabularySets = await loadAllVocabularySets(DATA_DIR, username);
+    const language = req.query.lang || 'en'; // Default to English if no language specified
+    const vocabularySets = await loadAllVocabularySets(DATA_DIR, username, language);
     res.json(vocabularySets);
   } catch (error) {
     console.error('Error loading vocabulary sets:', error);
@@ -80,7 +81,8 @@ app.get('/api/vocabulary/:id', async (req, res) => {
     const { id } = req.params;
     // Use a default user directory (e.g., 'default_user') for non-authenticated access
     const username = 'default_user';
-    const vocabularySet = await loadVocabularySetById(DATA_DIR, id, username);
+    const language = req.query.lang || 'en'; // Default to English if no language specified
+    const vocabularySet = await loadVocabularySetById(DATA_DIR, id, username, language);
 
     if (!vocabularySet) {
       return res.status(404).json({ error: 'Vocabulary set not found' });
@@ -99,13 +101,14 @@ app.post('/api/vocabulary', async (req, res) => {
     const vocabularyData = req.body;
     // Use a default user directory (e.g., 'default_user') for non-authenticated access
     const username = 'default_user';
+    const language = req.body.language || 'en'; // Default to English if no language specified
 
     // Validate required fields
     if (!vocabularyData.type || !vocabularyData.id) {
       return res.status(400).json({ error: 'Invalid vocabulary data: missing type or id' });
     }
 
-    const savedPath = await saveVocabularySet(DATA_DIR, vocabularyData, username);
+    const savedPath = await saveVocabularySet(DATA_DIR, vocabularyData, username, language);
     res.status(201).json({
       message: 'Vocabulary set saved successfully',
       path: savedPath
@@ -119,7 +122,7 @@ app.post('/api/vocabulary', async (req, res) => {
 // Generate new vocabulary via AI
 app.post('/api/generate', async (req, res) => {
   try {
-    const { userInput } = req.body;
+    const { userInput, language = 'en' } = req.body;
     // Use a default user directory (e.g., 'default_user') for non-authenticated access
     const username = 'default_user';
 
@@ -128,7 +131,7 @@ app.post('/api/generate', async (req, res) => {
     }
 
     // Check if the user is looking up a single word and if it already exists in the user's data
-    const allVocabularySets = await loadAllVocabularySets(DATA_DIR, username);
+    const allVocabularySets = await loadAllVocabularySets(DATA_DIR, username, language);
     const existingWordBreakdown = allVocabularySets.find(set =>
       set.type === 'word_breakdown' &&
       set.word &&
@@ -152,7 +155,7 @@ app.post('/api/generate', async (req, res) => {
     if (userInput === "Learn Some Words" || userInput === "new") {
       // For general requests, generate a random theme to maintain consistency
       // First, get all available themes to potentially select from or create a new one
-      const allThemes = await getAllThemes(DATA_DIR, username);
+      const allThemes = await getAllThemes(DATA_DIR, username, language);
 
       // If we have existing themes, we can select one randomly or create a new specific one
       // For now, let's generate a random specific theme
@@ -176,13 +179,13 @@ app.post('/api/generate', async (req, res) => {
       const randomSub = randomSubThemes[Math.floor(Math.random() * randomSubThemes.length)];
       theme = `${randomPrimary}: ${randomSub}`;
 
-      existingWords = await getWordsForTheme(DATA_DIR, theme, username);
+      existingWords = await getWordsForTheme(DATA_DIR, theme, username, language);
     } else if (userInput.startsWith("Learn Some Words: ") || userInput.startsWith("学习: ")) {
       // Extract theme from user input
       theme = userInput.includes(": ") ? userInput.split(": ")[1] : userInput;
 
       // Get words for the exact theme
-      existingWords = await getWordsForTheme(DATA_DIR, theme, username);
+      existingWords = await getWordsForTheme(DATA_DIR, theme, username, language);
 
       // Additionally, get words from related themes to avoid similar words across similar topics
       const themeWords = allVocabularySets
@@ -211,7 +214,7 @@ app.post('/api/generate', async (req, res) => {
 
       try {
         // Generate vocabulary using AI with existing words to avoid duplicates
-        generatedVocabulary = await generateVocabulary(userInput, existingWords);
+        generatedVocabulary = await generateVocabulary(userInput, existingWords, language);
 
         // Validate the generated data
         if (validateVocabularyData(generatedVocabulary)) {
@@ -235,10 +238,10 @@ app.post('/api/generate', async (req, res) => {
     }
 
     // Save the generated vocabulary
-    const savedPath = await saveVocabularySet(DATA_DIR, generatedVocabulary, username);
+    const savedPath = await saveVocabularySet(DATA_DIR, generatedVocabulary, username, language);
 
     // Update the vocabulary summary in the background
-    updateVocabularySummary(DATA_DIR, username).catch(err => {
+    updateVocabularySummary(DATA_DIR, username, language).catch(err => {
       console.error('Error updating vocabulary summary:', err);
     });
 
@@ -272,6 +275,47 @@ app.get('/api/quotes', (req, res) => {
   } catch (error) {
     console.error('Error reading quotes Excel file:', error);
     res.status(500).json({ error: 'Failed to read quotes file' });
+  }
+});
+
+// API route to serve language-specific vocabulary themes from Excel files
+app.get('/api/themes/:language', (req, res) => {
+  try {
+    const language = req.params.language.toLowerCase();
+    let fileName;
+
+    switch(language) {
+      case 'spanish':
+        fileName = 'spanish_vocabulary_themes.xlsx';
+        break;
+      case 'japanese':
+        fileName = 'japanese_vocabulary_themes.xlsx';
+        break;
+      case 'english':
+      default:
+        fileName = 'vocabulary_themes.xlsx';
+        break;
+    }
+
+    const filePath = path.join(__dirname, fileName);
+
+    if (!fs.existsSync(filePath)) {
+      // If the file doesn't exist, return an empty array
+      return res.json({ themes: [] });
+    }
+
+    const workbook = XLSX.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const themes = XLSX.utils.sheet_to_json(worksheet);
+
+    // Extract theme strings from the 'Theme' column
+    const themeStrings = themes.map(item => item.Theme).filter(theme => theme);
+
+    res.json({ themes: themeStrings });
+  } catch (error) {
+    console.error(`Error reading ${req.params.language} themes Excel file:`, error);
+    res.status(500).json({ error: `Failed to read ${req.params.language} themes file` });
   }
 });
 

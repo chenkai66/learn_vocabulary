@@ -66,18 +66,82 @@ if (apiKey && process.env.NODE_ENV !== 'test') {
  * Generate vocabulary set based on user request
  * @param {string} userInput - User's input (e.g., "Learn Some Words", "new", or specific word)
  * @param {Array} existingWords - Array of existing words to avoid duplicates
+ * @param {string} language - Target language for generation (default: 'en')
  * @returns {Promise<Object>} Generated vocabulary data
  */
-async function generateVocabulary(userInput, existingWords = []) {
+async function generateVocabulary(userInput, existingWords = [], language = 'en') {
   try {
     // Determine the type of request
     let prompt;
+
+    // Define language-specific instructions
+    let languageInstruction = '';
+    let languageExample = '';
+    let languageDefinitionField = 'chineseDefinition';
+    let languageStoryField = 'chinese';
+    let languageTranslationField = 'chineseTranslation';
+    let languageBreakdownFields = {
+      definition: 'chinese',
+      example: 'chineseTranslation',
+      etymology: '词源与构词分析',
+      memoryTips: '记忆技巧',
+      collocation: '中文注解',
+      distinction: '与原词的区别'
+    };
+
+    switch(language) {
+      case 'es':
+        languageInstruction = 'IMPORTANT: Generate vocabulary in Spanish context. The English words should remain as they are, and example sentences should be in Spanish. However, all definitions, memory aids, and explanations should be in Chinese. The story should also be in Chinese.';
+        languageExample = 'Spanish example sentence';
+        languageDefinitionField = 'chineseDefinition';
+        languageStoryField = 'chinese';
+        languageTranslationField = 'spanishTranslation';
+        languageBreakdownFields = {
+          definition: 'chinese',
+          example: 'spanishTranslation',
+          etymology: '词源与构词分析',
+          memoryTips: '记忆技巧',
+          collocation: '中文注解',
+          distinction: '与原词的区别'
+        };
+        break;
+      case 'ja':
+        languageInstruction = 'IMPORTANT: Generate vocabulary in Japanese context. The English words should remain as they are, and example sentences should be in Japanese. However, all definitions, memory aids, and explanations should be in Chinese. The story should also be in Chinese.';
+        languageExample = 'Japanese example sentence';
+        languageDefinitionField = 'chineseDefinition';
+        languageStoryField = 'chinese';
+        languageTranslationField = 'japaneseTranslation';
+        languageBreakdownFields = {
+          definition: 'chinese',
+          example: 'japaneseTranslation',
+          etymology: '词源与构词分析',
+          memoryTips: '记忆技巧',
+          collocation: '中文注解',
+          distinction: '与原词的区别'
+        };
+        break;
+      default: // English
+        languageInstruction = 'IMPORTANT: Generate vocabulary in English context. The definitions, memory aids, and examples should be in Chinese.';
+        languageExample = 'Academic context English example sentence';
+        languageDefinitionField = 'chineseDefinition';
+        languageStoryField = 'chinese';
+        languageTranslationField = 'chineseTranslation';
+        languageBreakdownFields = {
+          definition: 'chinese',
+          example: 'chineseTranslation',
+          etymology: '词源与构词分析',
+          memoryTips: '记忆技巧',
+          collocation: '中文注解',
+          distinction: '与原词的区别'
+        };
+    }
 
     if (userInput === "Learn Some Words" || userInput === "new") {
       // Generate a new vocabulary set
       const existingWordsText = existingWords.length > 0 ? `IMPORTANT: DO NOT include the following words that have already been generated for this theme: ${existingWords.join(', ')}. ` : '';
       prompt = `You are an advanced English vocabulary tutor that generates structured JSON data for vocabulary learning applications. Your task is to generate a vocabulary set in the specified JSON format.
 
+${languageInstruction}
 ${existingWordsText}Generate a new set of 10 advanced vocabulary words with a highly specific and focused theme. The words should be tightly connected within a narrow domain and serve distinct but complementary roles (not synonyms). Choose a precise and nuanced theme that includes both a primary category and a secondary sub-category. Primary categories include: "Computer Science", "Biological Sciences", "Physical Sciences", "Social Sciences", "Health Sciences", "Engineering", "Business & Economics", "Arts & Humanities", "Environmental Sciences", "Mathematics & Statistics", "Psychology & Cognitive Science", "Law & Justice", "Education", "Medicine", "Agriculture & Food Sciences". Secondary sub-categories should be extremely specific, such as:
 - Computer Science: "Transformer Architecture in Neural Networks", "Homomorphic Encryption Techniques", "Quantum Computing Error Correction", "Differential Privacy Mechanisms", "Federated Learning Protocols", "Graph Neural Network Applications", "Probabilistic Programming Languages", "Blockchain Consensus Algorithms", "Edge Computing Resource Allocation", "Explainable AI Methods"
 - Biological Sciences: "CRISPR-Cas9 Gene Editing Off-Target Effects", "Mitochondrial DNA Inheritance Patterns", "Protein Folding Thermodynamics", "Microbiome-Gut-Brain Axis", "Epigenetic Modifications in Cancer", "Neural Stem Cell Differentiation", "Photosystem II Electron Transport", "Synaptic Vesicle Trafficking", "Apoptosis Signaling Pathways", "Telomerase Activity Regulation"
@@ -90,32 +154,33 @@ Respond ONLY with valid JSON in this format:
   "type": "vocabulary_set",
   "id": "vocabulary-${Date.now()}-${Math.random().toString(36).substr(2, 9)}",
   "theme": "PRECISE PRIMARY CATEGORY: SECONDARY SUB-CATEGORY",
+  "language": "${language}",
   "words": [
     {
       "word": "example_word",
       "partOfSpeech": "noun/verb/adjective/adverb/preposition/conjunction/pronoun/determiner",
-      "chineseDefinition": "精确的中文释义，体现词汇在特定领域的含义",
-      "memoryAid": "具体的记忆辅助方法，如词根词缀分析、联想记忆法、对比记忆法等",
+      "chineseDefinition": "Definition in Chinese",
+      "memoryAid": "Memory aid in Chinese",
       "examples": [
         {
-          "sentence": "学术语境下的英文例句，体现词汇的专业用法",
-          "chineseTranslation": "与英文例句完全对应的中文翻译"
+          "sentence": "${languageExample}",
+          "${languageTranslationField}": "Translation in ${language}"
         }
       ]
     }
   ],
   "story": {
-    "english": "连贯的叙事性故事或论述，必须自然地融入全部10个词汇，形成一个完整的语境",
-    "chinese": "与英文故事完全对应的中文翻译，确保10个词汇的中文释义在语境中得到体现"
+    "english": "Coherent narrative or discussion that must naturally incorporate all 10 vocabulary words, forming a complete context",
+    "chinese": "Story in Chinese"
   },
   "reviewStatus": "new"
 }
 
 Ensure the vocabulary words are advanced, have tight thematic coherence within a specialized domain, and serve distinct but related roles. Each word should have:
 - A precise part of speech that reflects its specific usage in the domain
-- A Chinese definition that captures the nuanced meaning in the specific context
-- A memory aid that offers a specific technique for retention (etymology, association, contrast, etc.)
-- An example sentence that demonstrates the word's usage in an academic or professional context
+- A definition in Chinese that captures the nuanced meaning in the specific context
+- A memory aid in Chinese that offers a specific technique for retention (etymology, association, contrast, etc.)
+- An example sentence in ${language} that demonstrates the word's usage in an academic or professional context with translation in ${language}
 
 The mini-narrative story must seamlessly integrate ALL 10 vocabulary words into a coherent narrative or discussion that exemplifies the theme. Each word should feel naturally placed, not forced, and contribute to the overall meaning of the story. The story should demonstrate how these specialized terms interconnect within the specific domain. Most importantly, replace "PRECISE PRIMARY CATEGORY: SECONDARY SUB-CATEGORY" with a specific and extremely narrow topic that combines both a primary category and a detailed sub-category. Do NOT include timestamp in the JSON response - this will be added by the system automatically. Do NOT use generic themes like "Technology and Innovation" or placeholder text like "thematic connection of the words".`;
     } else if (userInput.startsWith("Learn Some Words: ") || userInput.startsWith("学习: ")) {
@@ -125,6 +190,7 @@ The mini-narrative story must seamlessly integrate ALL 10 vocabulary words into 
       const existingWordsText = existingWords.length > 0 ? `IMPORTANT: DO NOT include the following words that have already been generated for this theme: ${existingWords.join(', ')}. ` : '';
       prompt = `You are an advanced English vocabulary tutor that generates structured JSON data for vocabulary learning applications. Your task is to generate a vocabulary set in the specified JSON format.
 
+${languageInstruction}
 ${existingWordsText}Generate a new set of 10 advanced vocabulary words with a highly specific and focused theme based on the following keywords: ${keywords}. The words should be tightly connected within a narrow domain related to these keywords and serve distinct but complementary roles (not synonyms).
 
 Respond ONLY with valid JSON in this format:
@@ -132,37 +198,40 @@ Respond ONLY with valid JSON in this format:
   "type": "vocabulary_set",
   "id": "vocabulary-${Date.now()}-${Math.random().toString(36).substr(2, 9)}",
   "theme": "THEME BASED ON: ${keywords}",
+  "language": "${language}",
   "words": [
     {
       "word": "example_word",
       "partOfSpeech": "noun/verb/adjective/adverb/preposition/conjunction/pronoun/determiner",
-      "chineseDefinition": "精确的中文释义，体现词汇在特定领域的含义",
-      "memoryAid": "具体的记忆辅助方法，如词根词缀分析、联想记忆法、对比记忆法等",
+      "chineseDefinition": "Definition in Chinese",
+      "memoryAid": "Memory aid in Chinese",
       "examples": [
         {
-          "sentence": "学术语境下的英文例句，体现词汇的专业用法",
-          "chineseTranslation": "与英文例句完全对应的中文翻译"
+          "sentence": "${languageExample}",
+          "${languageTranslationField}": "Translation in ${language}"
         }
       ]
     }
   ],
   "story": {
-    "english": "连贯的叙事性故事或论述，必须自然地融入全部10个词汇，形成一个完整的语境",
-    "chinese": "与英文故事完全对应的中文翻译，确保10个词汇的中文释义在语境中得到体现"
+    "english": "Coherent narrative or discussion that must naturally incorporate all 10 vocabulary words, forming a complete context",
+    "chinese": "Story in Chinese"
   },
   "reviewStatus": "new"
 }
 
 Ensure the vocabulary words are advanced, have tight thematic coherence within a specialized domain related to the provided keywords, and serve distinct but related roles. Each word should have:
 - A precise part of speech that reflects its specific usage in the domain
-- A Chinese definition that captures the nuanced meaning in the specific context
-- A memory aid that offers a specific technique for retention (etymology, association, contrast, etc.)
-- An example sentence that demonstrates the word's usage in an academic or professional context
+- A definition in Chinese that captures the nuanced meaning in the specific context
+- A memory aid in Chinese that offers a specific technique for retention (etymology, association, contrast, etc.)
+- An example sentence in ${language} that demonstrates the word's usage in an academic or professional context with translation in ${language}
 
 The mini-narrative story must seamlessly integrate ALL 10 vocabulary words into a coherent narrative or discussion that exemplifies the theme based on the provided keywords. Each word should feel naturally placed, not forced, and contribute to the overall meaning of the story. The story should demonstrate how these specialized terms interconnect within the specific domain. Most importantly, make the theme relevant to the provided keywords. Do NOT include timestamp in the JSON response - this will be added by the system automatically. Do NOT use generic themes like "Technology and Innovation" or placeholder text like "thematic connection of the words".`;
     } else {
       // Generate a breakdown for a specific word
       prompt = `You are an advanced English vocabulary tutor that generates structured JSON data for vocabulary learning applications. Your task is to provide a detailed breakdown of the word: "${userInput}".
+
+${languageInstruction}
 
 Respond ONLY with valid JSON in this format:
 {
@@ -170,38 +239,39 @@ Respond ONLY with valid JSON in this format:
   "id": "breakdown-unique-identifier",
   "timestamp": "2024-01-01T00:00:00.000Z",
   "word": "requested_word",
+  "language": "${language}",
   "breakdown": {
     "pronunciation": "/ɪɡˈzæmpəl/", // IPA format
     "partOfSpeech": "noun/verb/adjective/etc.",
     "meanings": [
       {
         "definition": "English definition",
-        "chinese": "中文释义",
-        "usageContext": "Usage context description"
+        "chinese": "Definition in Chinese",
+        "usageContext": "Usage context description in Chinese"
       }
     ],
     "etymology": "词源与构词分析",
     "memoryTips": "记忆技巧",
     "examples": [
       {
-        "sentence": "Formal academic example sentence",
-        "chineseTranslation": "正式语境中文翻译"
+        "sentence": "Example sentence in ${language}",
+        "${languageBreakdownFields.example}": "Example in ${language}"
       },
       {
-        "sentence": "Advanced conversational example",
-        "chineseTranslation": "口语化中文翻译"
+        "sentence": "Another example sentence in ${language}",
+        "${languageBreakdownFields.example}": "Example in ${language}"
       }
     ],
     "collocations": [
       {
-        "phrase": "common phrase or collocation",
-        "chinese": "中文注解"
+        "phrase": "common phrase or collocation in ${language}",
+        "中文注解": "Explanation in Chinese"
       }
     ],
     "nearbyWords": [
       {
         "word": "similar or related word",
-        "distinction": "与原词的区别"
+        "与原词的区别": "Distinction from the original word"
       }
     ]
   }
@@ -224,7 +294,7 @@ Provide a comprehensive breakdown of the requested word.`;
           model: "qwen-max", // Use qwen-max as requested
           messages: [{ role: "user", content: prompt }],
           temperature: 0.7,
-          max_tokens: 2000,
+          max_tokens: 4000, // Increase token limit to handle larger responses
         });
 
         // Extract the response content
@@ -235,7 +305,29 @@ Provide a comprehensive breakdown of the requested word.`;
         try {
           // Find JSON in the response (in case there's any extra text)
           const jsonStart = responseContent.indexOf('{');
-          const jsonEnd = responseContent.lastIndexOf('}') + 1;
+          if (jsonStart === -1) {
+            throw new Error('No JSON object found in response');
+          }
+
+          // Find the matching closing brace by counting braces
+          let braceCount = 0;
+          let jsonEnd = -1;
+          for (let i = jsonStart; i < responseContent.length; i++) {
+            if (responseContent[i] === '{') {
+              braceCount++;
+            } else if (responseContent[i] === '}') {
+              braceCount--;
+              if (braceCount === 0) {
+                jsonEnd = i + 1;
+                break;
+              }
+            }
+          }
+
+          if (jsonEnd === -1) {
+            throw new Error('Unable to find complete JSON object in response');
+          }
+
           const jsonString = responseContent.substring(jsonStart, jsonEnd);
           parsedData = JSON.parse(jsonString);
         } catch (parseError) {
@@ -267,7 +359,7 @@ Provide a comprehensive breakdown of the requested word.`;
                 const validatedWord = {
                   word: word.word || 'Unknown Word',
                   partOfSpeech: word.partOfSpeech || 'Unknown',
-                  chineseDefinition: word.chineseDefinition || 'Definition not available',
+                  [languageDefinitionField]: word[languageDefinitionField] || 'Definition not available',
                   memoryAid: word.memoryAid || 'No memory aid',
                   examples: word.examples || []
                 };
@@ -277,11 +369,11 @@ Provide a comprehensive breakdown of the requested word.`;
               .filter(word => {
                 // Check if this word has valid content (not placeholder or generic)
                 const hasValidWord = word.word && word.word !== 'Unknown Word' && word.word.trim() !== '';
-                const hasValidDefinition = word.chineseDefinition &&
-                                          word.chineseDefinition !== 'Definition not available' &&
-                                          word.chineseDefinition.trim() !== '' &&
-                                          !word.chineseDefinition.toLowerCase().includes('not available') &&
-                                          !word.chineseDefinition.toLowerCase().includes('definition not available');
+                const hasValidDefinition = word[languageDefinitionField] &&
+                                          word[languageDefinitionField] !== 'Definition not available' &&
+                                          word[languageDefinitionField].trim() !== '' &&
+                                          !word[languageDefinitionField].toLowerCase().includes('not available') &&
+                                          !word[languageDefinitionField].toLowerCase().includes('definition not available');
 
                 if (hasValidWord && hasValidDefinition) {
                   validWordsCount++;
@@ -306,7 +398,7 @@ Provide a comprehensive breakdown of the requested word.`;
               return {
                 word: word.word || 'Unknown Word',
                 partOfSpeech: word.partOfSpeech || 'Unknown',
-                chineseDefinition: word.chineseDefinition || 'Definition not available',
+                [languageDefinitionField]: word[languageDefinitionField] || 'Definition not available',
                 memoryAid: word.memoryAid || 'No memory aid',
                 examples: word.examples || []
               };
@@ -344,26 +436,45 @@ function validateVocabularyData(vocabularyData) {
     return false;
   }
 
+  // Determine the language-specific field to check
+  const language = vocabularyData.language || 'en';
+  let definitionField = 'chineseDefinition';
+
+  switch(language) {
+    case 'es':
+      definitionField = 'chineseDefinition';
+      break;
+    case 'ja':
+      definitionField = 'chineseDefinition';
+      break;
+    default:
+      definitionField = 'chineseDefinition';
+  }
+
   // Validate based on type
   if (vocabularyData.type === 'vocabulary_set') {
     // Check if we have valid vocabulary data
     if (!vocabularyData.theme ||
         !Array.isArray(vocabularyData.words) ||
         !vocabularyData.story ||
-        !vocabularyData.story.english ||
-        !vocabularyData.story.chinese) {
+        !vocabularyData.story.english) {
       return false;
     }
 
     // Check if we have at least 5 valid words with proper definitions
     const validWords = vocabularyData.words.filter(word => {
-      return word.word &&
-             word.word.trim() !== '' &&
-             word.chineseDefinition &&
-             word.chineseDefinition.trim() !== '' &&
-             word.chineseDefinition !== 'Definition not available' &&
-             !word.chineseDefinition.toLowerCase().includes('not available') &&
-             !word.chineseDefinition.toLowerCase().includes('definition not available');
+      // For all languages, the definition field should be 'chineseDefinition' as specified in the prompt
+      const definitionField = 'chineseDefinition';
+      if (word[definitionField] &&
+          word[definitionField].trim() !== '' &&
+          word[definitionField] !== 'Definition not available' &&
+          !word[definitionField].toLowerCase().includes('not available') &&
+          !word[definitionField].toLowerCase().includes('definition not available')) {
+        return word.word &&
+               word.word.trim() !== '';
+      }
+
+      return false;
     });
 
     return validWords.length >= 5;
@@ -373,9 +484,7 @@ function validateVocabularyData(vocabularyData) {
            vocabularyData.breakdown.pronunciation &&
            vocabularyData.breakdown.partOfSpeech &&
            Array.isArray(vocabularyData.breakdown.meanings) &&
-           vocabularyData.breakdown.meanings.length > 0 &&
-           vocabularyData.breakdown.etymology &&
-           vocabularyData.breakdown.memoryTips);
+           vocabularyData.breakdown.meanings.length > 0);
   }
 
   return false;

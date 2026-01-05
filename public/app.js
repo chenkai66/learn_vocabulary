@@ -8,11 +8,13 @@ class VocabularyApp {
         this.selectedWord = null;
         this.selectedDefinition = null;
         this.currentUser = null;
+        this.currentLanguage = 'en'; // Default language
 
         this.initializeCurrentUser();
         this.initializeElements();
         this.bindEvents();
         this.loadVocabularySets();
+        this.setupLanguageSwitching();
         // Now that elements are initialized, refresh the theme suggestions
         setTimeout(() => {
             this.refreshThemeSuggestions();
@@ -28,1070 +30,111 @@ class VocabularyApp {
         this.loadRecommendedThemes();
     }
 
-    loadRecommendedThemes() {
-        // Define a comprehensive list of themes across different categories
-        this.allThemes = [
-            // IELTS/TOEFL themes
-            "IELTS: Technology and Society",
-            "IELTS: Education and Learning",
-            "IELTS: Environment and Sustainability",
-            "IELTS: Health and Healthcare",
-            "IELTS: Urban Development and Transportation",
-            "IELTS: Culture and Traditions",
-            "IELTS: Work and Employment",
-            "IELTS: Travel and Tourism",
-            "IELTS: Media and Communication",
-            "IELTS: Arts and Entertainment",
-            "IELTS: Science and Innovation",
-            "IELTS: Social Issues and Challenges",
-            "IELTS: Food and Nutrition",
-            "IELTS: Sports and Recreation",
-            "IELTS: Family and Relationships",
-            "IELTS: Crime and Justice",
-            "IELTS: Money and Finance",
-            "IELTS: Shopping and Consumerism",
-            "IELTS: Housing and Accommodation",
-            "IELTS: Government and Politics",
+    async loadRecommendedThemes() {
+        try {
+            // Get the current language from the UI
+            const currentLanguage = document.querySelector('.language-tab.active')?.getAttribute('data-language') || 'english';
 
-            // GRE themes
-            "GRE: Abstract Reasoning and Logic",
-            "GRE: Philosophical Concepts",
-            "GRE: Ethical Dilemmas",
-            "GRE: Scientific Methodology",
-            "GRE: Research and Experimentation",
-            "GRE: Data Analysis and Interpretation",
-            "GRE: Critical Thinking",
-            "GRE: Argument Analysis",
-            "GRE: Literary Analysis",
-            "GRE: Historical Perspectives",
-            "GRE: Economic Theory",
-            "GRE: Political Science",
-            "GRE: Psychology Concepts",
-            "GRE: Sociology Principles",
-            "GRE: Anthropology",
-            "GRE: Linguistics",
-            "GRE: Mathematics in Context",
-            "GRE: Statistics and Probability",
-            "GRE: Advanced Vocabulary",
-            "GRE: Academic Writing",
+            // Fetch themes from the server based on the selected language
+            const response = await fetch(`/api/themes/${currentLanguage}`);
+            const data = await response.json();
 
-            // Business Communication
-            "Business: Marketing and Advertising",
-            "Business: Sales and Customer Relations",
-            "Business: Leadership and Management",
-            "Business: Finance and Investment",
-            "Business: Human Resources",
-            "Business: Corporate Strategy",
-            "Business: International Business",
-            "Business: Negotiation Skills",
-            "Business: Team Building",
-            "Business: Project Management",
-            "Business: Innovation and Entrepreneurship",
-            "Business: Digital Transformation",
-            "Business: Supply Chain Management",
-            "Business: Risk Management",
-            "Business: Corporate Communication",
-            "Business: Ethics in Business",
-            "Business: Mergers and Acquisitions",
-            "Business: Brand Management",
-            "Business: Customer Experience",
-            "Business: Business Development",
-
-            // Daily Communication
-            "Daily: Making Appointments",
-            "Daily: Shopping and Bargaining",
-            "Daily: Ordering Food",
-            "Daily: Asking for Directions",
-            "Daily: Making Small Talk",
-            "Daily: Expressing Opinions",
-            "Daily: Giving Advice",
-            "Daily: Making Complaints",
-            "Daily: Inviting and Responding",
-            "Daily: Describing Experiences",
-            "Daily: Discussing Weather",
-            "Daily: Talking about Hobbies",
-            "Daily: Discussing Plans",
-            "Daily: Expressing Feelings",
-            "Daily: Making Suggestions",
-            "Daily: Discussing Problems",
-            "Daily: Expressing Preferences",
-            "Daily: Making Comparisons",
-            "Daily: Describing People",
-            "Daily: Discussing Habits",
-
-            // Natural Sciences
-            "Biology: Cell Structure and Function",
-            "Biology: Genetics and Heredity",
-            "Biology: Evolution and Natural Selection",
-            "Biology: Ecology and Ecosystems",
-            "Biology: Biochemistry and Metabolism",
-            "Biology: Anatomy and Physiology",
-            "Biology: Microbiology and Pathogens",
-            "Biology: Botany and Plant Physiology",
-            "Biology: Zoology and Animal Behavior",
-            "Biology: Biotechnology and Genetic Engineering",
-            "Chemistry: Atomic Structure",
-            "Chemistry: Chemical Bonding",
-            "Chemistry: Stoichiometry",
-            "Chemistry: Thermodynamics",
-            "Chemistry: Kinetics and Equilibrium",
-            "Chemistry: Organic Chemistry",
-            "Chemistry: Inorganic Chemistry",
-            "Chemistry: Physical Chemistry",
-            "Chemistry: Analytical Chemistry",
-            "Chemistry: Environmental Chemistry",
-            "Physics: Mechanics",
-            "Physics: Thermodynamics",
-            "Physics: Waves and Optics",
-            "Physics: Electricity and Magnetism",
-            "Physics: Modern Physics",
-            "Physics: Quantum Mechanics",
-            "Physics: Relativity",
-            "Physics: Nuclear Physics",
-            "Physics: Particle Physics",
-            "Physics: Astrophysics",
-            "Earth Sciences: Geology",
-            "Earth Sciences: Meteorology",
-            "Earth Sciences: Oceanography",
-            "Earth Sciences: Astronomy",
-            "Earth Sciences: Environmental Science",
-            "Earth Sciences: Climate Science",
-            "Earth Sciences: Paleontology",
-            "Earth Sciences: Seismology",
-            "Earth Sciences: Volcanology",
-            "Earth Sciences: Hydrology",
-
-            // Social Sciences
-            "Psychology: Cognitive Processes",
-            "Psychology: Behavioral Psychology",
-            "Psychology: Developmental Psychology",
-            "Psychology: Social Psychology",
-            "Psychology: Clinical Psychology",
-            "Psychology: Neuropsychology",
-            "Psychology: Educational Psychology",
-            "Psychology: Industrial Psychology",
-            "Psychology: Personality Theory",
-            "Psychology: Research Methods",
-            "Sociology: Social Institutions",
-            "Sociology: Social Stratification",
-            "Sociology: Cultural Sociology",
-            "Sociology: Deviance and Social Control",
-            "Sociology: Family and Marriage",
-            "Sociology: Urban Sociology",
-            "Sociology: Rural Sociology",
-            "Sociology: Demography",
-            "Sociology: Social Change",
-            "Sociology: Research Methods",
-            "Economics: Microeconomics",
-            "Economics: Macroeconomics",
-            "Economics: International Economics",
-            "Economics: Development Economics",
-            "Economics: Behavioral Economics",
-            "Economics: Labor Economics",
-            "Economics: Public Economics",
-            "Economics: Monetary Economics",
-            "Economics: Fiscal Policy",
-            "Economics: Economic Growth",
-            "Political Science: Political Theory",
-            "Political Science: Comparative Politics",
-            "Political Science: International Relations",
-            "Political Science: Public Policy",
-            "Political Science: Political Behavior",
-            "Political Science: Public Administration",
-            "Political Science: Constitutional Law",
-            "Political Science: Electoral Systems",
-            "Political Science: Political Economy",
-            "Political Science: Diplomacy",
-
-            // Humanities
-            "Literature: Classical Literature",
-            "Literature: Modern Literature",
-            "Literature: Poetry and Poetics",
-            "Literature: Drama and Theater",
-            "Literature: Literary Theory",
-            "Literature: Comparative Literature",
-            "Literature: World Literature",
-            "Literature: Literary Criticism",
-            "Literature: Genre Studies",
-            "Literature: Author Studies",
-            "History: Ancient Civilizations",
-            "History: Medieval Period",
-            "History: Renaissance",
-            "History: Industrial Revolution",
-            "History: World Wars",
-            "History: Cold War",
-            "History: Colonialism and Decolonization",
-            "History: Modern History",
-            "History: Social History",
-            "History: Economic History",
-            "Philosophy: Ethics",
-            "Philosophy: Epistemology",
-            "Philosophy: Metaphysics",
-            "Philosophy: Political Philosophy",
-            "Philosophy: Aesthetics",
-            "Philosophy: Philosophy of Mind",
-            "Philosophy: Philosophy of Science",
-            "Philosophy: Ancient Philosophy",
-            "Philosophy: Modern Philosophy",
-            "Philosophy: Eastern Philosophy",
-            "Art: Renaissance Art",
-            "Art: Modern Art",
-            "Art: Contemporary Art",
-            "Art: Art History",
-            "Art: Art Theory",
-            "Art: Sculpture",
-            "Art: Painting",
-            "Art: Photography",
-            "Art: Digital Art",
-            "Art: Art Criticism",
-
-            // Additional themes to reach 800
-            "Technology: Artificial Intelligence",
-            "Technology: Machine Learning",
-            "Technology: Data Science",
-            "Technology: Cybersecurity",
-            "Technology: Cloud Computing",
-            "Technology: Internet of Things",
-            "Technology: Blockchain Technology",
-            "Technology: Virtual Reality",
-            "Technology: Augmented Reality",
-            "Technology: Quantum Computing",
-            "Medicine: Anatomy and Physiology",
-            "Medicine: Pathology",
-            "Medicine: Pharmacology",
-            "Medicine: Surgery",
-            "Medicine: Internal Medicine",
-            "Medicine: Pediatrics",
-            "Medicine: Psychiatry",
-            "Medicine: Neurology",
-            "Medicine: Cardiology",
-            "Medicine: Oncology",
-            "Law: Constitutional Law",
-            "Law: Criminal Law",
-            "Law: Civil Law",
-            "Law: International Law",
-            "Law: Corporate Law",
-            "Law: Environmental Law",
-            "Law: Human Rights Law",
-            "Law: Contract Law",
-            "Law: Property Law",
-            "Law: Family Law",
-            "Education: Pedagogy",
-            "Education: Curriculum Design",
-            "Education: Educational Psychology",
-            "Education: Special Education",
-            "Education: Higher Education",
-            "Education: Early Childhood Education",
-            "Education: Adult Education",
-            "Education: Educational Technology",
-            "Education: Assessment and Evaluation",
-            "Education: Inclusive Education",
-            "Mathematics: Algebra",
-            "Mathematics: Calculus",
-            "Mathematics: Geometry",
-            "Mathematics: Statistics",
-            "Mathematics: Probability",
-            "Mathematics: Number Theory",
-            "Mathematics: Discrete Mathematics",
-            "Mathematics: Applied Mathematics",
-            "Mathematics: Mathematical Logic",
-            "Mathematics: Topology",
-            "Linguistics: Syntax",
-            "Linguistics: Semantics",
-            "Linguistics: Phonetics",
-            "Linguistics: Phonology",
-            "Linguistics: Pragmatics",
-            "Linguistics: Sociolinguistics",
-            "Linguistics: Psycholinguistics",
-            "Linguistics: Historical Linguistics",
-            "Linguistics: Computational Linguistics",
-            "Linguistics: Applied Linguistics",
-            "Environmental Science: Climate Change",
-            "Environmental Science: Biodiversity",
-            "Environmental Science: Pollution Control",
-            "Environmental Science: Conservation",
-            "Environmental Science: Sustainability",
-            "Environmental Science: Renewable Energy",
-            "Environmental Science: Environmental Policy",
-            "Environmental Science: Ecosystem Management",
-            "Environmental Science: Environmental Ethics",
-            "Environmental Science: Environmental Economics",
-            "Agriculture: Crop Science",
-            "Agriculture: Soil Science",
-            "Agriculture: Agricultural Economics",
-            "Agriculture: Animal Science",
-            "Agriculture: Agricultural Technology",
-            "Agriculture: Sustainable Agriculture",
-            "Agriculture: Food Science",
-            "Agriculture: Agricultural Policy",
-            "Agriculture: Plant Pathology",
-            "Agriculture: Agricultural Engineering",
-            "Engineering: Civil Engineering",
-            "Engineering: Mechanical Engineering",
-            "Engineering: Electrical Engineering",
-            "Engineering: Chemical Engineering",
-            "Engineering: Computer Engineering",
-            "Engineering: Biomedical Engineering",
-            "Engineering: Environmental Engineering",
-            "Engineering: Aerospace Engineering",
-            "Engineering: Industrial Engineering",
-            "Engineering: Materials Engineering",
-            "Architecture: Modern Architecture",
-            "Architecture: Classical Architecture",
-            "Architecture: Sustainable Architecture",
-            "Architecture: Urban Planning",
-            "Architecture: Interior Design",
-            "Architecture: Landscape Architecture",
-            "Architecture: Architectural Theory",
-            "Architecture: Building Technology",
-            "Architecture: Architectural History",
-            "Architecture: Digital Architecture",
-            "Journalism: News Writing",
-            "Journalism: Investigative Journalism",
-            "Journalism: Broadcast Journalism",
-            "Journalism: Digital Journalism",
-            "Journalism: Photojournalism",
-            "Journalism: Sports Journalism",
-            "Journalism: Political Journalism",
-            "Journalism: Business Journalism",
-            "Journalism: Science Journalism",
-            "Journalism: Ethics in Journalism",
-            "Marketing: Consumer Behavior",
-            "Marketing: Brand Management",
-            "Marketing: Digital Marketing",
-            "Marketing: Market Research",
-            "Marketing: Advertising",
-            "Marketing: Public Relations",
-            "Marketing: Product Management",
-            "Marketing: Pricing Strategy",
-            "Marketing: International Marketing",
-            "Marketing: Marketing Analytics",
-            "Finance: Investment Banking",
-            "Finance: Corporate Finance",
-            "Finance: Personal Finance",
-            "Finance: Financial Markets",
-            "Finance: Risk Management",
-            "Finance: Portfolio Management",
-            "Finance: Financial Planning",
-            "Finance: Behavioral Finance",
-            "Finance: International Finance",
-            "Finance: Financial Technology",
-            "Healthcare: Public Health",
-            "Healthcare: Healthcare Management",
-            "Healthcare: Health Policy",
-            "Healthcare: Healthcare Economics",
-            "Healthcare: Medical Ethics",
-            "Healthcare: Healthcare Technology",
-            "Healthcare: Health Informatics",
-            "Healthcare: Global Health",
-            "Healthcare: Healthcare Quality",
-            "Healthcare: Health Psychology",
-            "Sports: Sports Psychology",
-            "Sports: Sports Medicine",
-            "Sports: Sports Management",
-            "Sports: Sports Ethics",
-            "Sports: Sports Nutrition",
-            "Sports: Exercise Physiology",
-            "Sports: Sports Coaching",
-            "Sports: Sports Analytics",
-            "Sports: Sports Law",
-            "Sports: Sports Marketing",
-            "Transportation: Urban Transportation",
-            "Transportation: Aviation",
-            "Transportation: Maritime Transport",
-            "Transportation: Logistics",
-            "Transportation: Traffic Engineering",
-            "Transportation: Sustainable Transport",
-            "Transportation: Transportation Policy",
-            "Transportation: Intelligent Transportation",
-            "Transportation: Transportation Economics",
-            "Transportation: Transportation Safety",
-            "Tourism: Cultural Tourism",
-            "Tourism: Eco-tourism",
-            "Tourism: Sustainable Tourism",
-            "Tourism: Tourism Marketing",
-            "Tourism: Tourism Policy",
-            "Tourism: Tourism Management",
-            "Tourism: Adventure Tourism",
-            "Tourism: Medical Tourism",
-            "Tourism: Religious Tourism",
-            "Tourism: Event Tourism",
-            "Food: Nutrition Science",
-            "Food: Food Safety",
-            "Food: Food Technology",
-            "Food: Culinary Arts",
-            "Food: Food Marketing",
-            "Food: Food Policy",
-            "Food: Food Security",
-            "Food: Food Chemistry",
-            "Food: Food Psychology",
-            "Food: Food Economics",
-            "Fashion: Fashion Design",
-            "Fashion: Fashion Marketing",
-            "Fashion: Fashion History",
-            "Fashion: Sustainable Fashion",
-            "Fashion: Fashion Psychology",
-            "Fashion: Fashion Technology",
-            "Fashion: Fashion Business",
-            "Fashion: Fashion Communication",
-            "Fashion: Fashion Ethics",
-            "Fashion: Fashion Forecasting",
-            "Music: Music Theory",
-            "Music: Music History",
-            "Music: Music Psychology",
-            "Music: Music Technology",
-            "Music: Music Education",
-            "Music: Music Therapy",
-            "Music: Music Business",
-            "Music: Music Performance",
-            "Music: Music Composition",
-            "Music: Music Criticism",
-            "Dance: Ballet",
-            "Dance: Contemporary Dance",
-            "Dance: Cultural Dance",
-            "Dance: Dance Education",
-            "Dance: Dance Therapy",
-            "Dance: Dance History",
-            "Dance: Choreography",
-            "Dance: Dance Technique",
-            "Dance: Dance Anthropology",
-            "Dance: Dance Medicine",
-            "Theater: Acting Techniques",
-            "Theater: Directing",
-            "Theater: Playwriting",
-            "Theater: Theater History",
-            "Theater: Theater Design",
-            "Theater: Theater Management",
-            "Theater: Musical Theater",
-            "Theater: Experimental Theater",
-            "Theater: Theater Education",
-            "Theater: Theater Criticism",
-            "Film: Film Theory",
-            "Film: Film History",
-            "Film: Cinematography",
-            "Film: Film Directing",
-            "Film: Screenwriting",
-            "Film: Film Production",
-            "Film: Film Criticism",
-            "Film: Documentary Film",
-            "Film: Animation",
-            "Film: Film Marketing",
-            "Photography: Portrait Photography",
-            "Photography: Landscape Photography",
-            "Photography: Documentary Photography",
-            "Photography: Fashion Photography",
-            "Photography: Photojournalism",
-            "Photography: Digital Photography",
-            "Photography: Photography History",
-            "Photography: Photography Ethics",
-            "Photography: Photography Business",
-            "Photography: Photography Technology",
-            "Culinary: International Cuisines",
-            "Culinary: Molecular Gastronomy",
-            "Culinary: Food Pairing",
-            "Culinary: Culinary Techniques",
-            "Culinary: Food Presentation",
-            "Culinary: Food Safety",
-            "Culinary: Culinary History",
-            "Culinary: Sustainable Cooking",
-            "Culinary: Nutrition in Cooking",
-            "Culinary: Culinary Business",
-            "Religion: Comparative Religion",
-            "Religion: Theology",
-            "Religion: Religious History",
-            "Religion: Religious Philosophy",
-            "Religion: Religious Ethics",
-            "Religion: Religious Practices",
-            "Religion: Religious Art",
-            "Religion: Religious Literature",
-            "Religion: Religious Psychology",
-            "Religion: Religious Politics",
-            "Mythology: Greek Mythology",
-            "Mythology: Roman Mythology",
-            "Mythology: Norse Mythology",
-            "Mythology: Egyptian Mythology",
-            "Mythology: Hindu Mythology",
-            "Mythology: Buddhist Mythology",
-            "Mythology: Chinese Mythology",
-            "Mythology: Native American Mythology",
-            "Mythology: African Mythology",
-            "Mythology: Mythology in Literature",
-            "Archaeology: Prehistoric Archaeology",
-            "Archaeology: Classical Archaeology",
-            "Archaeology: Historical Archaeology",
-            "Archaeology: Underwater Archaeology",
-            "Archaeology: Archaeological Methods",
-            "Archaeology: Archaeological Theory",
-            "Archaeology: Cultural Heritage",
-            "Archaeology: Archaeological Ethics",
-            "Archaeology: Archaeological Technology",
-            "Archaeology: Archaeological Conservation",
-            "Anthropology: Cultural Anthropology",
-            "Anthropology: Physical Anthropology",
-            "Anthropology: Archaeological Anthropology",
-            "Anthropology: Linguistic Anthropology",
-            "Anthropology: Applied Anthropology",
-            "Anthropology: Medical Anthropology",
-            "Anthropology: Economic Anthropology",
-            "Anthropology: Political Anthropology",
-            "Anthropology: Anthropological Theory",
-            "Anthropology: Anthropological Methods",
-            "Demography: Population Studies",
-            "Demography: Migration Studies",
-            "Demography: Fertility Studies",
-            "Demography: Mortality Studies",
-            "Demography: Urban Demography",
-            "Demography: Rural Demography",
-            "Demography: Economic Demography",
-            "Demography: Social Demography",
-            "Demography: Demographic Methods",
-            "Demography: Demographic Policy",
-            "Statistics: Descriptive Statistics",
-            "Statistics: Inferential Statistics",
-            "Statistics: Probability Theory",
-            "Statistics: Statistical Software",
-            "Statistics: Statistical Modeling",
-            "Statistics: Experimental Design",
-            "Statistics: Survey Sampling",
-            "Statistics: Time Series Analysis",
-            "Statistics: Multivariate Analysis",
-            "Statistics: Statistical Inference",
-            "Probability: Probability Theory",
-            "Probability: Stochastic Processes",
-            "Probability: Random Variables",
-            "Probability: Probability Distributions",
-            "Probability: Statistical Inference",
-            "Probability: Bayesian Statistics",
-            "Probability: Markov Chains",
-            "Probability: Queueing Theory",
-            "Probability: Reliability Theory",
-            "Probability: Probability Applications",
-            "Logic: Propositional Logic",
-            "Logic: Predicate Logic",
-            "Logic: Modal Logic",
-            "Logic: Mathematical Logic",
-            "Logic: Philosophical Logic",
-            "Logic: Computational Logic",
-            "Logic: Logical Reasoning",
-            "Logic: Logical Fallacies",
-            "Logic: Logic Programming",
-            "Logic: Logic Applications",
-            "Ethics: Applied Ethics",
-            "Ethics: Metaethics",
-            "Ethics: Normative Ethics",
-            "Ethics: Business Ethics",
-            "Ethics: Medical Ethics",
-            "Ethics: Environmental Ethics",
-            "Ethics: Technology Ethics",
-            "Ethics: Research Ethics",
-            "Ethics: Professional Ethics",
-            "Ethics: Global Ethics",
-            "Epistemology: Theory of Knowledge",
-            "Epistemology: Justification",
-            "Epistemology: Skepticism",
-            "Epistemology: Reliabilism",
-            "Epistemology: Social Epistemology",
-            "Epistemology: Feminist Epistemology",
-            "Epistemology: Epistemic Virtues",
-            "Epistemology: Epistemic Injustice",
-            "Epistemology: Epistemology of Science",
-            "Epistemology: Epistemology of Perception",
-            "Metaphysics: Ontology",
-            "Metaphysics: Causation",
-            "Metaphysics: Time and Space",
-            "Metaphysics: Identity",
-            "Metaphysics: Modality",
-            "Metaphysics: Persistence",
-            "Metaphysics: Universals",
-            "Metaphysics: Metaphysics of Science",
-            "Metaphysics: Metaphysics of Mind",
-            "Metaphysics: Metaphysics of Properties",
-            "Political Philosophy: Justice",
-            "Political Philosophy: Liberty",
-            "Political Philosophy: Equality",
-            "Political Philosophy: Democracy",
-            "Political Philosophy: Authority",
-            "Political Philosophy: Rights",
-            "Political Philosophy: Political Obligation",
-            "Political Philosophy: Distributive Justice",
-            "Political Philosophy: Political Legitimacy",
-            "Political Philosophy: Political Authority",
-            "Aesthetics: Philosophy of Art",
-            "Aesthetics: Beauty",
-            "Aesthetics: Taste",
-            "Aesthetics: Artistic Expression",
-            "Aesthetics: Aesthetic Experience",
-            "Aesthetics: Artistic Value",
-            "Aesthetics: Aesthetic Judgment",
-            "Aesthetics: Aesthetic Emotions",
-            "Aesthetics: Aesthetic Concepts",
-            "Aesthetics: Aesthetic Theory",
-            "Philosophy of Mind: Consciousness",
-            "Philosophy of Mind: Mental States",
-            "Philosophy of Mind: Intentionality",
-            "Philosophy of Mind: Mind-Body Problem",
-            "Philosophy of Mind: Personal Identity",
-            "Philosophy of Mind: Free Will",
-            "Philosophy of Mind: Philosophy of Psychology",
-            "Philosophy of Mind: Philosophy of Cognitive Science",
-            "Philosophy of Mind: Philosophy of Neuroscience",
-            "Philosophy of Mind: Philosophy of Psychiatry",
-            "Philosophy of Science: Scientific Method",
-            "Philosophy of Science: Scientific Explanation",
-            "Philosophy of Science: Scientific Realism",
-            "Philosophy of Science: Scientific Models",
-            "Philosophy of Science: Scientific Laws",
-            "Philosophy of Science: Scientific Change",
-            "Philosophy of Science: Philosophy of Physics",
-            "Philosophy of Science: Philosophy of Biology",
-            "Philosophy of Science: Philosophy of Psychology",
-            "Philosophy of Science: Philosophy of Social Science",
-            "Ancient Philosophy: Pre-Socratic Philosophy",
-            "Ancient Philosophy: Socratic Philosophy",
-            "Ancient Philosophy: Platonic Philosophy",
-            "Ancient Philosophy: Aristotelian Philosophy",
-            "Ancient Philosophy: Hellenistic Philosophy",
-            "Ancient Philosophy: Stoicism",
-            "Ancient Philosophy: Epicureanism",
-            "Ancient Philosophy: Skepticism",
-            "Ancient Philosophy: Ancient Ethics",
-            "Ancient Philosophy: Ancient Political Philosophy",
-            "Modern Philosophy: Rationalism",
-            "Modern Philosophy: Empiricism",
-            "Modern Philosophy: Kantian Philosophy",
-            "Modern Philosophy: German Idealism",
-            "Modern Philosophy: British Empiricism",
-            "Modern Philosophy: Continental Philosophy",
-            "Modern Philosophy: Analytic Philosophy",
-            "Modern Philosophy: Modern Ethics",
-            "Modern Philosophy: Modern Political Philosophy",
-            "Modern Philosophy: Modern Epistemology",
-            "Eastern Philosophy: Confucianism",
-            "Eastern Philosophy: Taoism",
-            "Eastern Philosophy: Buddhism",
-            "Eastern Philosophy: Hinduism",
-            "Eastern Philosophy: Islamic Philosophy",
-            "Eastern Philosophy: Japanese Philosophy",
-            "Eastern Philosophy: Indian Philosophy",
-            "Eastern Philosophy: Eastern Ethics",
-            "Eastern Philosophy: Eastern Political Philosophy",
-            "Eastern Philosophy: Eastern Aesthetics",
-            "Classical Literature: Greek Literature",
-            "Classical Literature: Roman Literature",
-            "Classical Literature: Medieval Literature",
-            "Classical Literature: Renaissance Literature",
-            "Classical Literature: Classical Drama",
-            "Classical Literature: Classical Poetry",
-            "Classical Literature: Classical Epic",
-            "Classical Literature: Classical Rhetoric",
-            "Classical Literature: Classical Criticism",
-            "Classical Literature: Classical Influence",
-            "Modern Literature: Modernist Literature",
-            "Modern Literature: Postmodern Literature",
-            "Modern Literature: Contemporary Literature",
-            "Modern Literature: Modern Poetry",
-            "Modern Literature: Modern Drama",
-            "Modern Literature: Modern Fiction",
-            "Modern Literature: Modern Non-fiction",
-            "Modern Literature: Modern Literary Theory",
-            "Modern Literature: Modern Literary Criticism",
-            "Modern Literature: Modern Literary Movements",
-            "Poetry: Classical Poetry",
-            "Poetry: Modern Poetry",
-            "Poetry: Contemporary Poetry",
-            "Poetry: Poetic Forms",
-            "Poetry: Poetic Devices",
-            "Poetry: Poetic Meter",
-            "Poetry: Poetic Imagery",
-            "Poetry: Poetic Themes",
-            "Poetry: Poetic Traditions",
-            "Poetry: Poetic Innovation",
-            "Drama: Classical Drama",
-            "Drama: Modern Drama",
-            "Drama: Contemporary Drama",
-            "Drama: Tragedy",
-            "Drama: Comedy",
-            "Drama: Tragicomedy",
-            "Drama: Experimental Drama",
-            "Drama: Political Drama",
-            "Drama: Social Drama",
-            "Drama: Psychological Drama",
-            "Literary Theory: Formalism",
-            "Literary Theory: Structuralism",
-            "Literary Theory: Post-structuralism",
-            "Literary Theory: Deconstruction",
-            "Literary Theory: Reader-Response Theory",
-            "Literary Theory: New Criticism",
-            "Literary Theory: Feminist Literary Theory",
-            "Literary Theory: Marxist Literary Theory",
-            "Literary Theory: Postcolonial Literary Theory",
-            "Literary Theory: Psychoanalytic Literary Theory",
-            "Comparative Literature: Cross-Cultural Literature",
-            "Comparative Literature: Literary Translation",
-            "Comparative Literature: Literary Influence",
-            "Comparative Literature: Literary Themes",
-            "Comparative Literature: Literary Genres",
-            "Comparative Literature: Literary Movements",
-            "Comparative Literature: Literary Traditions",
-            "Comparative Literature: Literary Criticism",
-            "Comparative Literature: Literary Theory",
-            "Comparative Literature: Literary History",
-            "World Literature: African Literature",
-            "World Literature: Asian Literature",
-            "World Literature: Latin American Literature",
-            "World Literature: Middle Eastern Literature",
-            "World Literature: European Literature",
-            "World Literature: North American Literature",
-            "World Literature: Oceanic Literature",
-            "World Literature: World Literature History",
-            "World Literature: World Literature Themes",
-            "World Literature: World Literature Movements",
-            "Literary Criticism: Historical Criticism",
-            "Literary Criticism: Biographical Criticism",
-            "Literary Criticism: Psychological Criticism",
-            "Literary Criticism: Sociological Criticism",
-            "Literary Criticism: Mythological Criticism",
-            "Literary Criticism: Archetypal Criticism",
-            "Literary Criticism: Formalist Criticism",
-            "Literary Criticism: Structuralist Criticism",
-            "Literary Criticism: Post-structuralist Criticism",
-            "Literary Criticism: Deconstructive Criticism",
-            "Genre Studies: Novel",
-            "Genre Studies: Poetry",
-            "Genre Studies: Drama",
-            "Genre Studies: Essay",
-            "Genre Studies: Short Story",
-            "Genre Studies: Epic",
-            "Genre Studies: Lyric",
-            "Genre Studies: Satire",
-            "Genre Studies: Romance",
-            "Genre Studies: Tragedy",
-            "Author Studies: Shakespeare",
-            "Author Studies: Dickens",
-            "Author Studies: Austen",
-            "Author Studies: Woolf",
-            "Author Studies: Joyce",
-            "Author Studies: Kafka",
-            "Author Studies: Beckett",
-            "Author Studies: Morrison",
-            "Author Studies: Rushdie",
-            "Author Studies: Coetzee",
-            "Ancient Civilizations: Mesopotamia",
-            "Ancient Civilizations: Egypt",
-            "Ancient Civilizations: Greece",
-            "Ancient Civilizations: Rome",
-            "Ancient Civilizations: China",
-            "Ancient Civilizations: India",
-            "Ancient Civilizations: Maya",
-            "Ancient Civilizations: Inca",
-            "Ancient Civilizations: Aztec",
-            "Ancient Civilizations: Ancient Persia",
-            "Medieval Period: Feudalism",
-            "Medieval Period: Crusades",
-            "Medieval Period: Medieval Church",
-            "Medieval Period: Medieval Universities",
-            "Medieval Period: Medieval Literature",
-            "Medieval Period: Medieval Art",
-            "Medieval Period: Medieval Architecture",
-            "Medieval Period: Medieval Law",
-            "Medieval Period: Medieval Trade",
-            "Medieval Period: Medieval Warfare",
-            "Renaissance: Renaissance Art",
-            "Renaissance: Renaissance Literature",
-            "Renaissance: Renaissance Science",
-            "Renaissance: Renaissance Philosophy",
-            "Renaissance: Renaissance Politics",
-            "Renaissance: Renaissance Religion",
-            "Renaissance: Renaissance Humanism",
-            "Renaissance: Renaissance Exploration",
-            "Renaissance: Renaissance Music",
-            "Renaissance: Renaissance Architecture",
-            "Industrial Revolution: Industrial Technology",
-            "Industrial Revolution: Industrial Society",
-            "Industrial Revolution: Industrial Economy",
-            "Industrial Revolution: Industrial Labor",
-            "Industrial Revolution: Industrial Urbanization",
-            "Industrial Revolution: Industrial Capitalism",
-            "Industrial Revolution: Industrial Reform",
-            "Industrial Revolution: Industrial Impact",
-            "Industrial Revolution: Industrial Innovation",
-            "Industrial Revolution: Industrial Change",
-            "World Wars: WWI Causes",
-            "World Wars: WWI Impact",
-            "World Wars: WWII Causes",
-            "World Wars: WWII Impact",
-            "World Wars: War Technology",
-            "World Wars: War Strategy",
-            "World Wars: War Diplomacy",
-            "World Wars: War Economy",
-            "World Wars: War Society",
-            "World Wars: War Memory",
-            "Cold War: Cold War Origins",
-            "Cold War: Cold War Politics",
-            "Cold War: Cold War Economics",
-            "Cold War: Cold War Society",
-            "Cold War: Cold War Culture",
-            "Cold War: Cold War Technology",
-            "Cold War: Cold War Diplomacy",
-            "Cold War: Cold War Propaganda",
-            "Cold War: Cold War Espionage",
-            "Cold War: Cold War End",
-            "Colonialism: Colonial Administration",
-            "Colonialism: Colonial Economy",
-            "Colonialism: Colonial Society",
-            "Colonialism: Colonial Culture",
-            "Colonialism: Colonial Resistance",
-            "Colonialism: Colonial Impact",
-            "Colonialism: Colonial Legacy",
-            "Colonialism: Colonial Law",
-            "Colonialism: Colonial Education",
-            "Colonialism: Colonial Health",
-            "Decolonization: Independence Movements",
-            "Decolonization: Liberation Struggles",
-            "Decolonization: Political Transition",
-            "Decolonization: Economic Transition",
-            "Decolonization: Social Transition",
-            "Decolonization: Cultural Transition",
-            "Decolonization: Post-colonial Challenges",
-            "Decolonization: International Support",
-            "Decolonization: Decolonization Process",
-            "Decolonization: Decolonization Impact",
-            "Modern History: Contemporary Events",
-            "Modern History: Globalization",
-            "Modern History: Technological Change",
-            "Modern History: Social Movements",
-            "Modern History: Political Change",
-            "Modern History: Economic Change",
-            "Modern History: Cultural Change",
-            "Modern History: Environmental Change",
-            "Modern History: Demographic Change",
-            "Modern History: Historical Memory",
-            "Social History: Women's History",
-            "Social History: Labor History",
-            "Social History: Family History",
-            "Social History: Childhood History",
-            "Social History: Urban History",
-            "Social History: Rural History",
-            "Social History: Migration History",
-            "Social History: Ethnic History",
-            "Social History: Religious History",
-            "Social History: Cultural History",
-            "Economic History: Economic Development",
-            "Economic History: Economic Systems",
-            "Economic History: Economic Crises",
-            "Economic History: Economic Growth",
-            "Economic History: Economic Policy",
-            "Economic History: Economic Theory",
-            "Economic History: Economic Institutions",
-            "Economic History: Economic Change",
-            "Economic History: Economic Impact",
-            "Economic History: Economic Legacy",
-            "Ethics: Virtue Ethics",
-            "Ethics: Consequentialism",
-            "Ethics: Deontological Ethics",
-            "Ethics: Care Ethics",
-            "Ethics: Metaethics",
-            "Ethics: Applied Ethics",
-            "Ethics: Normative Ethics",
-            "Ethics: Descriptive Ethics",
-            "Ethics: Professional Ethics",
-            "Ethics: Global Ethics",
-            "Epistemology: Knowledge",
-            "Epistemology: Belief",
-            "Epistemology: Truth",
-            "Epistemology: Justification",
-            "Epistemology: Skepticism",
-            "Epistemology: Reliabilism",
-            "Epistemology: Social Epistemology",
-            "Epistemology: Feminist Epistemology",
-            "Epistemology: Epistemic Virtues",
-            "Epistemology: Epistemic Injustice",
-            "Metaphysics: Existence",
-            "Metaphysics: Identity",
-            "Metaphysics: Causation",
-            "Metaphysics: Time",
-            "Metaphysics: Space",
-            "Metaphysics: Modality",
-            "Metaphysics: Persistence",
-            "Metaphysics: Universals",
-            "Metaphysics: Metaphysics of Science",
-            "Metaphysics: Metaphysics of Mind",
-            "Political Philosophy: Justice",
-            "Political Philosophy: Liberty",
-            "Political Philosophy: Equality",
-            "Political Philosophy: Democracy",
-            "Political Philosophy: Authority",
-            "Political Philosophy: Rights",
-            "Political Philosophy: Political Obligation",
-            "Political Philosophy: Distributive Justice",
-            "Political Philosophy: Political Legitimacy",
-            "Political Philosophy: Political Authority",
-            "Aesthetics: Beauty",
-            "Aesthetics: Art",
-            "Aesthetics: Taste",
-            "Aesthetics: Aesthetic Experience",
-            "Aesthetics: Aesthetic Value",
-            "Aesthetics: Aesthetic Judgment",
-            "Aesthetics: Aesthetic Emotions",
-            "Aesthetics: Aesthetic Concepts",
-            "Aesthetics: Aesthetic Theory",
-            "Aesthetics: Aesthetic Practice",
-            "Philosophy of Mind: Consciousness",
-            "Philosophy of Mind: Intentionality",
-            "Philosophy of Mind: Mental States",
-            "Philosophy of Mind: Mind-Body Problem",
-            "Philosophy of Mind: Personal Identity",
-            "Philosophy of Mind: Free Will",
-            "Philosophy of Mind: Philosophy of Psychology",
-            "Philosophy of Mind: Philosophy of Cognitive Science",
-            "Philosophy of Mind: Philosophy of Neuroscience",
-            "Philosophy of Mind: Philosophy of Psychiatry",
-            "Philosophy of Science: Scientific Method",
-            "Philosophy of Science: Scientific Explanation",
-            "Philosophy of Science: Scientific Realism",
-            "Philosophy of Science: Scientific Models",
-            "Philosophy of Science: Scientific Laws",
-            "Philosophy of Science: Scientific Change",
-            "Philosophy of Science: Philosophy of Physics",
-            "Philosophy of Science: Philosophy of Biology",
-            "Philosophy of Science: Philosophy of Psychology",
-            "Philosophy of Science: Philosophy of Social Science",
-            "Ancient Philosophy: Pre-Socratic",
-            "Ancient Philosophy: Socrates",
-            "Ancient Philosophy: Plato",
-            "Ancient Philosophy: Aristotle",
-            "Ancient Philosophy: Hellenistic",
-            "Ancient Philosophy: Stoicism",
-            "Ancient Philosophy: Epicureanism",
-            "Ancient Philosophy: Skepticism",
-            "Ancient Philosophy: Ancient Ethics",
-            "Ancient Philosophy: Ancient Politics",
-            "Modern Philosophy: Rationalism",
-            "Modern Philosophy: Empiricism",
-            "Modern Philosophy: Kant",
-            "Modern Philosophy: German Idealism",
-            "Modern Philosophy: British Empiricism",
-            "Modern Philosophy: Continental",
-            "Modern Philosophy: Analytic",
-            "Modern Philosophy: Modern Ethics",
-            "Modern Philosophy: Modern Politics",
-            "Modern Philosophy: Modern Epistemology",
-            "Eastern Philosophy: Confucianism",
-            "Eastern Philosophy: Taoism",
-            "Eastern Philosophy: Buddhism",
-            "Eastern Philosophy: Hinduism",
-            "Eastern Philosophy: Islamic Philosophy",
-            "Eastern Philosophy: Japanese Philosophy",
-            "Eastern Philosophy: Indian Philosophy",
-            "Eastern Philosophy: Eastern Ethics",
-            "Eastern Philosophy: Eastern Politics",
-            "Eastern Philosophy: Eastern Aesthetics",
-            "Renaissance Art: Renaissance Painting",
-            "Renaissance Art: Renaissance Sculpture",
-            "Renaissance Art: Renaissance Architecture",
-            "Renaissance Art: Renaissance Artists",
-            "Renaissance Art: Renaissance Patronage",
-            "Renaissance Art: Renaissance Techniques",
-            "Renaissance Art: Renaissance Themes",
-            "Renaissance Art: Renaissance Influence",
-            "Renaissance Art: Renaissance Legacy",
-            "Renaissance Art: Renaissance Context",
-            "Modern Art: Impressionism",
-            "Modern Art: Expressionism",
-            "Modern Art: Cubism",
-            "Modern Art: Surrealism",
-            "Modern Art: Abstract Art",
-            "Modern Art: Pop Art",
-            "Modern Art: Minimalism",
-            "Modern Art: Conceptual Art",
-            "Modern Art: Performance Art",
-            "Modern Art: Installation Art",
-            "Contemporary Art: Contemporary Painting",
-            "Contemporary Art: Contemporary Sculpture",
-            "Contemporary Art: Contemporary Photography",
-            "Contemporary Art: Contemporary Video",
-            "Contemporary Art: Contemporary Installation",
-            "Contemporary Art: Contemporary Performance",
-            "Contemporary Art: Contemporary Digital",
-            "Contemporary Art: Contemporary Mixed Media",
-            "Contemporary Art: Contemporary Themes",
-            "Contemporary Art: Contemporary Issues",
-            "Art History: Prehistoric Art",
-            "Art History: Ancient Art",
-            "Art History: Medieval Art",
-            "Art History: Renaissance Art",
-            "Art History: Baroque Art",
-            "Art History: Neoclassical Art",
-            "Art History: Romantic Art",
-            "Art History: Modern Art",
-            "Art History: Contemporary Art",
-            "Art History: Non-Western Art",
-            "Art Theory: Formalism",
-            "Art Theory: Expressionism",
-            "Art Theory: Imitationalism",
-            "Art Theory: Instrumentalism",
-            "Art Theory: Aesthetic Theory",
-            "Art Theory: Artistic Value",
-            "Art Theory: Artistic Meaning",
-            "Art Theory: Artistic Expression",
-            "Art Theory: Artistic Function",
-            "Art Theory: Artistic Purpose",
-            "Sculpture: Classical Sculpture",
-            "Sculpture: Renaissance Sculpture",
-            "Sculpture: Modern Sculpture",
-            "Sculpture: Contemporary Sculpture",
-            "Sculpture: Abstract Sculpture",
-            "Sculpture: Figurative Sculpture",
-            "Sculpture: Installation Sculpture",
-            "Sculpture: Kinetic Sculpture",
-            "Sculpture: Environmental Sculpture",
-            "Sculpture: Conceptual Sculpture",
-            "Painting: Renaissance Painting",
-            "Painting: Baroque Painting",
-            "Painting: Romantic Painting",
-            "Painting: Impressionist Painting",
-            "Painting: Post-Impressionist Painting",
-            "Painting: Modern Painting",
-            "Painting: Abstract Painting",
-            "Painting: Contemporary Painting",
-            "Painting: Figurative Painting",
-            "Painting: Landscape Painting",
-            "Photography: Documentary Photography",
-            "Photography: Portrait Photography",
-            "Photography: Landscape Photography",
-            "Photography: Fashion Photography",
-            "Photography: Art Photography",
-            "Photography: Photojournalism",
-            "Photography: Digital Photography",
-            "Photography: Analog Photography",
-            "Photography: Conceptual Photography",
-            "Photography: Experimental Photography",
-            "Digital Art: Digital Painting",
-            "Digital Art: Digital Sculpture",
-            "Digital Art: Digital Animation",
-            "Digital Art: Digital Video",
-            "Digital Art: Digital Installation",
-            "Digital Art: Digital Performance",
-            "Digital Art: Digital Interactive",
-            "Digital Art: Digital 3D",
-            "Digital Art: Digital 2D",
-            "Digital Art: Digital Mixed Media",
-            "Art Criticism: Formal Criticism",
-            "Art Criticism: Contextual Criticism",
-            "Art Criticism: Biographical Criticism",
-            "Art Criticism: Psychological Criticism",
-            "Art Criticism: Sociological Criticism",
-            "Art Criticism: Historical Criticism",
-            "Art Criticism: Feminist Criticism",
-            "Art Criticism: Postcolonial Criticism",
-            "Art Criticism: Marxist Criticism",
-            "Art Criticism: Psychoanalytic Criticism"
-        ];
+            if (data.themes && data.themes.length > 0) {
+                this.allThemes = data.themes;
+            } else {
+                // Fallback to default themes if API call fails
+                this.allThemes = this.getDefaultThemesForLanguage(currentLanguage);
+            }
+        } catch (error) {
+            console.error(`Error loading ${currentLanguage} themes:`, error);
+            // Fallback to default themes if API call fails
+            const currentLanguage = document.querySelector('.language-tab.active')?.getAttribute('data-language') || 'english';
+            this.allThemes = this.getDefaultThemesForLanguage(currentLanguage);
+        }
     }
 
-    refreshThemeSuggestions() {
+    // Helper function to provide default themes if API fails
+    getDefaultThemesForLanguage(language) {
+        switch(language.toLowerCase()) {
+            case 'spanish':
+                return [
+                    "Spanish: Basic Greetings",
+                    "Spanish: Introductions",
+                    "Spanish: Numbers 1-100",
+                    "Spanish: Colors",
+                    "Spanish: Family Members",
+                    "Spanish: Days of the Week",
+                    "Spanish: Months",
+                    "Spanish: Time and Hours",
+                    "Spanish: Food and Drinks",
+                    "Spanish: Restaurant Vocabulary",
+                    "Spanish: Shopping",
+                    "Spanish: Clothing",
+                    "Spanish: Body Parts",
+                    "Spanish: Animals",
+                    "Spanish: Weather",
+                    "Spanish: Transportation",
+                    "Spanish: Travel",
+                    "Spanish: Hobbies",
+                    "Spanish: School Subjects",
+                    "Spanish: Professions"
+                ];
+            case 'japanese':
+                return [
+                    "Japanese: Basic Greetings",
+                    "Japanese: Introductions",
+                    "Japanese: Numbers 1-100",
+                    "Japanese: Hiragana",
+                    "Japanese: Katakana",
+                    "Japanese: Basic Kanji",
+                    "Japanese: Colors",
+                    "Japanese: Family Members",
+                    "Japanese: Days of the Week",
+                    "Japanese: Months",
+                    "Japanese: Time and Hours",
+                    "Japanese: Food and Drinks",
+                    "Japanese: Restaurant Vocabulary",
+                    "Japanese: Shopping",
+                    "Japanese: Clothing",
+                    "Japanese: Body Parts",
+                    "Japanese: Animals",
+                    "Japanese: Weather",
+                    "Japanese: Transportation",
+                    "Japanese: Travel"
+                ];
+            case 'english':
+            default:
+                return [
+                    "English: Daily Communication",
+                    "English: Travel and Tourism",
+                    "English: Food and Dining",
+                    "English: Shopping",
+                    "English: Family and Relationships",
+                    "English: Health and Medicine",
+                    "English: Work and Employment",
+                    "English: Education",
+                    "English: Hobbies and Interests",
+                    "English: Sports and Recreation",
+                    "English: Technology",
+                    "English: Environment",
+                    "English: Arts and Entertainment",
+                    "English: Science and Nature",
+                    "English: Business and Finance",
+                    "English: Politics and Government",
+                    "English: Culture and Traditions",
+                    "English: Media and Communication",
+                    "English: Transportation",
+                    "English: Housing and Accommodation"
+                ];
+        }
+    }
+
+    async refreshThemeSuggestions() {
         console.log('Refreshing theme suggestions...');
         console.log('themeSuggestionsContainer:', this.themeSuggestionsContainer);
+
+        // Reload themes based on current language
+        await this.loadRecommendedThemes();
 
         if (!this.themeSuggestionsContainer) {
             console.error('themeSuggestionsContainer not found');
@@ -1381,6 +424,7 @@ class VocabularyApp {
         this.usernameDisplay = document.getElementById('username-display');
         this.refreshThemesBtn = document.getElementById('refresh-themes-btn');
         this.themeSuggestionsContainer = document.getElementById('theme-suggestions');
+        this.langTabElements = document.querySelectorAll('.lang-tab');
 
         // Check if elements were found
         if (!this.generateBtn) console.error('generate-btn not found');
@@ -1401,6 +445,215 @@ class VocabularyApp {
             console.error('theme-suggestions not found');
         } else {
             console.log('theme-suggestions found:', this.themeSuggestionsContainer);
+        }
+        if (!this.langTabElements) console.error('lang-tab elements not found');
+    }
+
+    setupLanguageSwitching() {
+        // Add event listeners to language tabs
+        this.langTabElements.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const selectedLang = e.target.getAttribute('data-lang');
+                this.switchLanguage(selectedLang);
+            });
+        });
+    }
+
+    switchLanguage(lang) {
+        // Update the active tab
+        this.langTabElements.forEach(tab => {
+            if (tab.getAttribute('data-lang') === lang) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+            }
+        });
+
+        // Update the current language
+        this.currentLanguage = lang;
+
+        // Update the UI to reflect the language change
+        this.updateUIForLanguage(lang);
+
+        // Reload vocabulary sets for the selected language
+        this.loadVocabularySets();
+
+        // Refresh theme suggestions for the new language
+        this.refreshThemeSuggestions();
+    }
+
+    updateUIForLanguage(lang) {
+        // Update header text based on language
+        const header = document.querySelector('header h1');
+        if (header) {
+            switch(lang) {
+                case 'en':
+                    header.textContent = 'Advanced Vocabulary Learning';
+                    break;
+                case 'es':
+                    header.textContent = 'Aprendizaje de Vocabulario Avanzado';
+                    break;
+                case 'ja':
+                    header.textContent = '高度語彙学習';
+                    break;
+                default:
+                    header.textContent = 'Advanced Vocabulary Learning';
+            }
+        }
+
+        // Update section headers based on language
+        const generateSectionHeader = document.querySelector('#generation-section h2');
+        if (generateSectionHeader) {
+            switch(lang) {
+                case 'en':
+                    generateSectionHeader.textContent = 'Generate New Vocabulary';
+                    break;
+                case 'es':
+                    generateSectionHeader.textContent = 'Generar Nuevo Vocabulario';
+                    break;
+                case 'ja':
+                    generateSectionHeader.textContent = '新しい語彙を生成';
+                    break;
+                default:
+                    generateSectionHeader.textContent = 'Generate New Vocabulary';
+            }
+        }
+
+        // Update theme input placeholder
+        if (this.themeInput) {
+            switch(lang) {
+                case 'en':
+                    this.themeInput.placeholder = 'Enter keywords for theme (e.g., \'biology: genetics\', \'computer science: AI\') or leave empty for random';
+                    break;
+                case 'es':
+                    this.themeInput.placeholder = 'Ingrese palabras clave para el tema (por ejemplo, \'biología: genética\', \'ciencias de la computación: IA\') o déjelo vacío para aleatorio';
+                    break;
+                case 'ja':
+                    this.themeInput.placeholder = 'テーマのキーワードを入力してください（例：\'生物学: 遺伝学\'、\'コンピューターサイエンス: AI\'）または空欄にしてランダム生成';
+                    break;
+                default:
+                    this.themeInput.placeholder = 'Enter keywords for theme (e.g., \'biology: genetics\', \'computer science: AI\') or leave empty for random';
+            }
+        }
+
+        // Update generate button text
+        if (this.generateBtn) {
+            switch(lang) {
+                case 'en':
+                    this.generateBtn.textContent = 'Learn Some Words';
+                    break;
+                case 'es':
+                    this.generateBtn.textContent = 'Aprender Algunas Palabras';
+                    break;
+                case 'ja':
+                    this.generateBtn.textContent = 'いくつかの単語を学ぶ';
+                    break;
+                default:
+                    this.generateBtn.textContent = 'Learn Some Words';
+            }
+        }
+
+        // Update word input placeholder
+        if (this.wordInput) {
+            switch(lang) {
+                case 'en':
+                    this.wordInput.placeholder = 'Enter a specific word to learn...';
+                    break;
+                case 'es':
+                    this.wordInput.placeholder = 'Ingrese una palabra específica para aprender...';
+                    break;
+                case 'ja':
+                    this.wordInput.placeholder = '学習する特定の単語を入力してください...';
+                    break;
+                default:
+                    this.wordInput.placeholder = 'Enter a specific word to learn...';
+            }
+        }
+
+        // Update lookup button text
+        if (this.lookupBtn) {
+            switch(lang) {
+                case 'en':
+                    this.lookupBtn.textContent = 'Lookup Word';
+                    break;
+                case 'es':
+                    this.lookupBtn.textContent = 'Buscar Palabra';
+                    break;
+                case 'ja':
+                    this.lookupBtn.textContent = '単語を検索';
+                    break;
+                default:
+                    this.lookupBtn.textContent = 'Lookup Word';
+            }
+        }
+
+        // Update vocabulary display header
+        const vocabularyDisplayHeader = document.querySelector('#vocabulary-display h2');
+        if (vocabularyDisplayHeader) {
+            switch(lang) {
+                case 'en':
+                    vocabularyDisplayHeader.textContent = 'Your Vocabulary Sets';
+                    break;
+                case 'es':
+                    vocabularyDisplayHeader.textContent = 'Tus Conjuntos de Vocabulario';
+                    break;
+                case 'ja':
+                    vocabularyDisplayHeader.textContent = 'あなたの語彙セット';
+                    break;
+                default:
+                    vocabularyDisplayHeader.textContent = 'Your Vocabulary Sets';
+            }
+        }
+
+        // Update review section header
+        const reviewSectionHeader = document.querySelector('#review-section h2');
+        if (reviewSectionHeader) {
+            switch(lang) {
+                case 'en':
+                    reviewSectionHeader.textContent = 'Review Vocabulary';
+                    break;
+                case 'es':
+                    reviewSectionHeader.textContent = 'Revisar Vocabulario';
+                    break;
+                case 'ja':
+                    reviewSectionHeader.textContent = '語彙を復習';
+                    break;
+                default:
+                    reviewSectionHeader.textContent = 'Review Vocabulary';
+            }
+        }
+
+        // Update review buttons
+        if (this.startFullReviewBtn) {
+            switch(lang) {
+                case 'en':
+                    this.startFullReviewBtn.textContent = 'Full Review';
+                    break;
+                case 'es':
+                    this.startFullReviewBtn.textContent = 'Revisión Completa';
+                    break;
+                case 'ja':
+                    this.startFullReviewBtn.textContent = '完全復習';
+                    break;
+                default:
+                    this.startFullReviewBtn.textContent = 'Full Review';
+            }
+        }
+
+        if (this.startSingleReviewBtn) {
+            switch(lang) {
+                case 'en':
+                    this.startSingleReviewBtn.textContent = 'Single Theme Review';
+                    break;
+                case 'es':
+                    this.startSingleReviewBtn.textContent = 'Revisión de Tema Único';
+                    break;
+                case 'ja':
+                    this.startSingleReviewBtn.textContent = '単一テーマ復習';
+                    break;
+                default:
+                    this.startSingleReviewBtn.textContent = 'Single Theme Review';
+            }
         }
     }
 
@@ -1455,7 +708,7 @@ class VocabularyApp {
     async loadVocabularySets() {
         try {
             this.showLoading(this.vocabularyContainer, 'Loading vocabulary sets...');
-            const response = await fetch('/api/vocabulary');
+            const response = await fetch(`/api/vocabulary?lang=${this.currentLanguage}`);
 
             const vocabularySets = await response.json();
             this.vocabularySets = vocabularySets;
@@ -1491,7 +744,10 @@ class VocabularyApp {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ userInput: userInput })
+                body: JSON.stringify({
+                    userInput: userInput,
+                    language: this.currentLanguage
+                })
             });
 
             if (!response.ok) {
@@ -1513,7 +769,8 @@ class VocabularyApp {
         } finally {
             // Re-enable the button after completion (success or failure)
             this.generateBtn.disabled = false;
-            this.generateBtn.textContent = 'Learn Some Words';
+            this.generateBtn.textContent = this.currentLanguage === 'en' ? 'Learn Some Words' :
+                                          this.currentLanguage === 'es' ? 'Aprender Algunas Palabras' : 'いくつかの単語を学ぶ';
         }
     }
     
@@ -1545,7 +802,10 @@ class VocabularyApp {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ userInput: word })
+                body: JSON.stringify({
+                    userInput: word,
+                    language: this.currentLanguage
+                })
             });
 
             if (!response.ok) {
@@ -1576,11 +836,14 @@ class VocabularyApp {
 
         this.vocabularyContainer.innerHTML = '';
 
-        // Filter to only show vocabulary sets (not word breakdowns)
-        const vocabularySets = this.vocabularySets.filter(set => set.type === 'vocabulary_set');
+        // Filter to only show vocabulary sets (not word breakdowns) for the current language
+        const vocabularySets = this.vocabularySets.filter(set =>
+            set.type === 'vocabulary_set' &&
+            (set.language === this.currentLanguage || !set.language) // Show sets without language or matching current language
+        );
 
         if (vocabularySets.length === 0) {
-            this.vocabularyContainer.innerHTML = '<p>No vocabulary sets available. Generate some using the buttons above.</p>';
+            this.vocabularyContainer.innerHTML = '<p>No vocabulary sets available for the selected language. Generate some using the buttons above.</p>';
             return;
         }
 
@@ -1622,6 +885,22 @@ class VocabularyApp {
         const set = this.vocabularySets.find(s => s.id === setId);
         if (!set || set.type !== 'vocabulary_set') return;
 
+        // For all languages, the definition field is 'chineseDefinition' (Chinese explanations)
+        let definitionField = 'chineseDefinition';
+        let translationField = 'chineseTranslation';
+        let storyField = 'chinese';
+        let languageName = 'Chinese';
+
+        if (set.language === 'es') {
+            translationField = 'spanishTranslation';  // Spanish example sentences
+            storyField = 'spanish';
+            languageName = 'Spanish';
+        } else if (set.language === 'ja') {
+            translationField = 'japaneseTranslation';  // Japanese example sentences
+            storyField = 'japanese';
+            languageName = 'Japanese';
+        }
+
         // Create a modal or expandable detail view
         const detailView = document.createElement('div');
         detailView.className = 'vocabulary-detail-view';
@@ -1636,13 +915,13 @@ class VocabularyApp {
                     <div class="word-card">
                         <div class="word">${word.word}</div>
                         <div class="part-of-speech">${word.partOfSpeech}</div>
-                        <div class="chinese-definition">${word.chineseDefinition}</div>
+                        <div class="chinese-definition">${word[definitionField]}</div>
                         <div class="memory-aid">${word.memoryAid}</div>
                         <div class="examples">
                             ${word.examples.map(example => `
                                 <div class="example">
                                     <div class="sentence">${example.sentence}</div>
-                                    <div class="chinese-translation">${example.chineseTranslation}</div>
+                                    <div class="chinese-translation">${example[translationField]}</div>
                                 </div>
                             `).join('')}
                         </div>
@@ -1653,7 +932,7 @@ class VocabularyApp {
             <div class="story-section">
                 <h4>Story</h4>
                 <p><strong>English:</strong> ${set.story.english}</p>
-                <p><strong>Chinese:</strong> ${set.story.chinese}</p>
+                <p><strong>${languageName}:</strong> ${set.story[storyField]}</p>
             </div>
         `;
 
@@ -1669,6 +948,31 @@ class VocabularyApp {
 
 
     showWordBreakdownDetails(wordBreakdown) {
+        // For word breakdowns, the definition field is 'chinese' (Chinese explanations)
+        let definitionField = 'chinese';
+        let exampleField = 'chineseTranslation';
+        let collocationField = 'chinese';
+        let distinctionField = '与原词的区别';
+        let etymologyField = '词源与构词分析';
+        let memoryTipsField = '记忆技巧';
+        let languageName = 'Chinese';
+
+        if (wordBreakdown.language === 'es') {
+            exampleField = 'spanishTranslation';  // Spanish example sentences
+            collocationField = '中文注解';  // Chinese explanations for Spanish
+            distinctionField = '与原词的区别';  // Chinese explanations for Spanish
+            etymologyField = '词源与构词分析';  // Chinese explanations for Spanish
+            memoryTipsField = '记忆技巧';  // Chinese explanations for Spanish
+            languageName = 'Spanish';
+        } else if (wordBreakdown.language === 'ja') {
+            exampleField = 'japaneseTranslation';  // Japanese example sentences
+            collocationField = '中文注解';  // Chinese explanations for Japanese
+            distinctionField = '与原词的区别';  // Chinese explanations for Japanese
+            etymologyField = '词源与构词分析';  // Chinese explanations for Japanese
+            memoryTipsField = '记忆技巧';  // Chinese explanations for Japanese
+            languageName = 'Japanese';
+        }
+
         // Create a detail view for a single word breakdown
         const detailView = document.createElement('div');
         detailView.className = 'vocabulary-detail-view';
@@ -1688,18 +992,18 @@ class VocabularyApp {
                     ${wordBreakdown.breakdown.meanings.map(meaning => `
                         <div class="meaning">
                             <div><strong>Definition:</strong> ${meaning.definition}</div>
-                            <div><strong>Chinese:</strong> ${meaning.chinese}</div>
+                            <div><strong>${languageName}:</strong> ${meaning[definitionField]}</div>
                             <div><strong>Context:</strong> ${meaning.usageContext}</div>
                         </div>
                     `).join('')}
                 </div>
 
                 <div class="etymology">
-                    <strong>Etymology:</strong> ${wordBreakdown.breakdown.etymology}
+                    <strong>Etymology:</strong> ${wordBreakdown.breakdown.etymology || etymologyField}
                 </div>
 
                 <div class="memory-tips">
-                    <strong>Memory Tips:</strong> ${wordBreakdown.breakdown.memoryTips}
+                    <strong>Memory Tips:</strong> ${wordBreakdown.breakdown.memoryTips || memoryTipsField}
                 </div>
 
                 <div class="examples">
@@ -1707,7 +1011,7 @@ class VocabularyApp {
                     ${wordBreakdown.breakdown.examples.map(example => `
                         <div class="example">
                             <div class="sentence">${example.sentence}</div>
-                            <div class="chinese-translation">${example.chineseTranslation}</div>
+                            <div class="chinese-translation">${example[exampleField]}</div>
                         </div>
                     `).join('')}
                 </div>
@@ -1716,7 +1020,7 @@ class VocabularyApp {
                     <h4>Collocations:</h4>
                     ${wordBreakdown.breakdown.collocations.map(collocation => `
                         <div class="collocation">
-                            <div><strong>${collocation.phrase}:</strong> ${collocation.chinese}</div>
+                            <div><strong>${collocation.phrase}:</strong> ${collocation[collocationField]}</div>
                         </div>
                     `).join('')}
                 </div>

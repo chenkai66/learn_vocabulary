@@ -4,8 +4,8 @@
   "description": "A web application for learning advanced English vocabulary through AI-generated content",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "PORT=3002 node server.js",
+    "dev": "PORT=3002 nodemon server.js",
     "test": "jest",
     "test:watch": "jest --watch"
   },

@@ -5,24 +5,30 @@ const { v4: uuidv4 } = require('uuid');
 /**
  * Load all vocabulary sets from the data directory
  */
-async function loadAllVocabularySets(dataDir, username = null) {
+async function loadAllVocabularySets(dataDir, username = null, language = 'en') {
   try {
     // If username is provided, use user-specific directory
     const userDir = username ? path.join(dataDir, username) : dataDir;
 
-    // Create user directory if it doesn't exist
+    // Create language-specific subdirectory
+    const langDir = path.join(userDir, language);
+
+    // Create user and language directories if they don't exist
     if (username) {
       if (!await fileExists(userDir)) {
         await fs.mkdir(userDir, { recursive: true });
       }
     }
+    if (!await fileExists(langDir)) {
+      await fs.mkdir(langDir, { recursive: true });
+    }
 
-    const files = await fs.readdir(userDir);
+    const files = await fs.readdir(langDir);
     const jsonFiles = files.filter(file => path.extname(file) === '.json');
 
     const vocabularySets = [];
     for (const file of jsonFiles) {
-      const filePath = path.join(userDir, file);
+      const filePath = path.join(langDir, file);
       const content = await fs.readFile(filePath, 'utf8');
 
       try {
@@ -46,7 +52,7 @@ async function loadAllVocabularySets(dataDir, username = null) {
 /**
  * Save a vocabulary set to the data directory
  */
-async function saveVocabularySet(dataDir, vocabularyData, username = null) {
+async function saveVocabularySet(dataDir, vocabularyData, username = null, language = 'en') {
   try {
     // Validate data structure
     if (!vocabularyData.id) {
@@ -56,6 +62,9 @@ async function saveVocabularySet(dataDir, vocabularyData, username = null) {
     if (!vocabularyData.timestamp) {
       vocabularyData.timestamp = new Date().toISOString();
     }
+
+    // Add language information to the vocabulary data
+    vocabularyData.language = language;
 
     // Create a filename based on the theme if it's a vocabulary set, otherwise use ID
     let fileName;
@@ -90,14 +99,20 @@ async function saveVocabularySet(dataDir, vocabularyData, username = null) {
     // If username is provided, save to user-specific directory
     const userDir = username ? path.join(dataDir, username) : dataDir;
 
-    // Create user directory if it doesn't exist
+    // Create language-specific subdirectory
+    const langDir = path.join(userDir, language);
+
+    // Create user and language directories if they don't exist
     if (username) {
       if (!await fileExists(userDir)) {
         await fs.mkdir(userDir, { recursive: true });
       }
     }
+    if (!await fileExists(langDir)) {
+      await fs.mkdir(langDir, { recursive: true });
+    }
 
-    const filePath = path.join(userDir, fileName);
+    const filePath = path.join(langDir, fileName);
 
     // Write the data to the file
     await fs.writeFile(filePath, JSON.stringify(vocabularyData, null, 2), 'utf8');
@@ -112,26 +127,32 @@ async function saveVocabularySet(dataDir, vocabularyData, username = null) {
 /**
  * Load a specific vocabulary set by ID
  */
-async function loadVocabularySetById(dataDir, id, username = null) {
+async function loadVocabularySetById(dataDir, id, username = null, language = 'en') {
   try {
     // If username is provided, use user-specific directory
     const userDir = username ? path.join(dataDir, username) : dataDir;
 
-    // Create user directory if it doesn't exist
+    // Create language-specific subdirectory
+    const langDir = path.join(userDir, language);
+
+    // Create user and language directories if they don't exist
     if (username) {
       if (!await fileExists(userDir)) {
         await fs.mkdir(userDir, { recursive: true });
       }
     }
+    if (!await fileExists(langDir)) {
+      await fs.mkdir(langDir, { recursive: true });
+    }
 
-    const files = await fs.readdir(userDir);
+    const files = await fs.readdir(langDir);
 
     // Do a full scan of all JSON files to find the matching ID
     // This is the most reliable method since filename parsing can be tricky
     for (const file of files) {
       if (path.extname(file) === '.json') {
         try {
-          const filePath = path.join(userDir, file);
+          const filePath = path.join(langDir, file);
           const content = await fs.readFile(filePath, 'utf8');
           const data = JSON.parse(content);
 
@@ -217,18 +238,22 @@ async function findVocabularySetFilePathById(dataDir, id) {
  * Maintains a long-term summary of all vocabulary sets
  * Creates a consolidated dictionary with themes, words, and definitions
  */
-async function updateVocabularySummary(dataDir, username = null) {
+async function updateVocabularySummary(dataDir, username = null, language = 'en') {
   try {
-    // Load all vocabulary sets for the specific user
-    const allVocabularySets = await loadAllVocabularySets(dataDir, username);
+    // Load all vocabulary sets for the specific user and language
+    const allVocabularySets = await loadAllVocabularySets(dataDir, username, language);
 
     // If username is provided, use user-specific directory
     const userDir = username ? path.join(dataDir, username) : dataDir;
+
+    // Create language-specific subdirectory
+    const langDir = path.join(userDir, language);
 
     // Create a consolidated summary
     const summary = {
       timestamp: new Date().toISOString(),
       totalVocabularySets: allVocabularySets.length,
+      language: language,
       themes: {},
       wordCount: 0
     };
@@ -271,7 +296,7 @@ async function updateVocabularySummary(dataDir, username = null) {
     }
 
     // Save the summary to a file
-    const summaryPath = path.join(userDir, 'vocabulary_summary.json');
+    const summaryPath = path.join(langDir, 'vocabulary_summary.json');
     await fs.writeFile(summaryPath, JSON.stringify(summary, null, 2), 'utf8');
 
     return summaryPath;
@@ -284,16 +309,19 @@ async function updateVocabularySummary(dataDir, username = null) {
 /**
  * Load the vocabulary summary
  */
-async function loadVocabularySummary(dataDir, username = null) {
+async function loadVocabularySummary(dataDir, username = null, language = 'en') {
   try {
     // If username is provided, use user-specific directory
     const userDir = username ? path.join(dataDir, username) : dataDir;
 
-    const summaryPath = path.join(userDir, 'vocabulary_summary.json');
+    // Create language-specific subdirectory
+    const langDir = path.join(userDir, language);
+
+    const summaryPath = path.join(langDir, 'vocabulary_summary.json');
 
     if (!await fileExists(summaryPath)) {
       // If summary doesn't exist, create it
-      await updateVocabularySummary(dataDir, username);
+      await updateVocabularySummary(dataDir, username, language);
     }
 
     const content = await fs.readFile(summaryPath, 'utf8');
@@ -301,8 +329,8 @@ async function loadVocabularySummary(dataDir, username = null) {
   } catch (error) {
     console.error('Error loading vocabulary summary:', error);
     // If there's an error, try to create a new summary
-    await updateVocabularySummary(dataDir, username);
-    const content = await fs.readFile(path.join(userDir, 'vocabulary_summary.json'), 'utf8');
+    await updateVocabularySummary(dataDir, username, language);
+    const content = await fs.readFile(path.join(langDir, 'vocabulary_summary.json'), 'utf8');
     return JSON.parse(content);
   }
 }
@@ -322,9 +350,9 @@ async function fileExists(filePath) {
 /**
  * Get all words for a specific theme to prevent duplicates
  */
-async function getWordsForTheme(dataDir, theme, username = null) {
+async function getWordsForTheme(dataDir, theme, username = null, language = 'en') {
   try {
-    const summary = await loadVocabularySummary(dataDir, username);
+    const summary = await loadVocabularySummary(dataDir, username, language);
 
     if (summary.themes && summary.themes[theme]) {
       return summary.themes[theme].words.map(wordObj => wordObj.word);
@@ -340,9 +368,9 @@ async function getWordsForTheme(dataDir, theme, username = null) {
 /**
  * Get all available themes
  */
-async function getAllThemes(dataDir, username = null) {
+async function getAllThemes(dataDir, username = null, language = 'en') {
   try {
-    const summary = await loadVocabularySummary(dataDir, username);
+    const summary = await loadVocabularySummary(dataDir, username, language);
 
     if (summary.themes) {
       return Object.keys(summary.themes);
